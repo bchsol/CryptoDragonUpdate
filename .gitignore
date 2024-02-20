@@ -1,2 +1,4 @@
 node_modules
 angelcat
+.deps
+contracts/artifacts
