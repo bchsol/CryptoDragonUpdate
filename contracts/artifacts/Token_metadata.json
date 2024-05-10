@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.8.24+commit.e11b9ed9"
+		"version": "0.8.25+commit.b61c2a91"
 	},
 	"language": "Solidity",
 	"output": {
@@ -977,9 +977,9 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"contracts/Token.sol": "Token"
+			"Token.sol": "Token"
 		},
-		"evmVersion": "shanghai",
+		"evmVersion": "cancun",
 		"libraries": {},
 		"metadata": {
 			"bytecodeHash": "ipfs"
@@ -1119,7 +1119,7 @@
 				"dweb:/ipfs/QmVBEei6aTnvYNZp2CHYVNKyZS4q1KkjANfY39WVXZXVoT"
 			]
 		},
-		"contracts/Breeding.sol": {
+		"Breeding.sol": {
 			"keccak256": "0x418f727fc6e70d54483a1b187ed07bc2fbd26247fc429278d7d459e9cfac03d6",
 			"license": "MIT",
 			"urls": [
@@ -1127,7 +1127,7 @@
 				"dweb:/ipfs/QmVFU8kdPqhQyt6DFmKeX1L4CDn2c8fFojQKzyU6ffC3vn"
 			]
 		},
-		"contracts/Token.sol": {
+		"Token.sol": {
 			"keccak256": "0x045dc7caff213b7a07ab5e0e7fefb7ff3cb94d613ece13ab3a74a5cd7d56de05",
 			"license": "MIT",
 			"urls": [
@@ -1135,7 +1135,7 @@
 				"dweb:/ipfs/QmUXaaXywtGNyCqfcHaQ4QzSe1kFTRju2U9MnRdVTVU4xh"
 			]
 		},
-		"contracts/TokenBase.sol": {
+		"TokenBase.sol": {
 			"keccak256": "0x583e1ffd3022b949450f27f5b3cb0522579c6b1070418c03a3452ee594c9e8ea",
 			"license": "MIT",
 			"urls": [

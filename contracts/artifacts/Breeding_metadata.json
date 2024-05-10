@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.8.24+commit.e11b9ed9"
+		"version": "0.8.25+commit.b61c2a91"
 	},
 	"language": "Solidity",
 	"output": {
@@ -875,9 +875,9 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"contracts/Breeding.sol": "Breeding"
+			"Breeding.sol": "Breeding"
 		},
-		"evmVersion": "shanghai",
+		"evmVersion": "cancun",
 		"libraries": {},
 		"metadata": {
 			"bytecodeHash": "ipfs"
@@ -1017,20 +1017,20 @@
 				"dweb:/ipfs/QmVBEei6aTnvYNZp2CHYVNKyZS4q1KkjANfY39WVXZXVoT"
 			]
 		},
-		"contracts/Breeding.sol": {
-			"keccak256": "0x42c0c797290f831aed7748d36795385ddcfd85c92e886ad68453baa322c856cb",
+		"Breeding.sol": {
+			"keccak256": "0x0094958f5286b8003f193b236992be653193794a6439623f1c19ff67e93b0bc9",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://f8d13695d2aed4e10f8e1000020e550af06e53519bf51ecd949ff68078570184",
-				"dweb:/ipfs/QmYZxLGfrvqpccnqd54u5Zz6sup79TxQAeH5eiSYixVnaq"
+				"bzz-raw://0540c07868bb138e22bb2ea5495252eb49d4ae95dc3eae9dc0f45c70c4382d64",
+				"dweb:/ipfs/Qmcmtc6WbQn9KJEiSZE1VxGUyjB9DRP99EbheS1E8NwU9d"
 			]
 		},
-		"contracts/TokenBase.sol": {
-			"keccak256": "0xe60251e7a64d85151f9b75b1c355e51623bfd0f8f4ca01e65092c88eb3f79c89",
+		"TokenBase.sol": {
+			"keccak256": "0x583e1ffd3022b949450f27f5b3cb0522579c6b1070418c03a3452ee594c9e8ea",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://6d9c926e2dc429d3c0183e1102481ca42586a7e6a8bb8b241ee39a497f4a687d",
-				"dweb:/ipfs/QmZBegCCM6r63ajiQetR9gLqVHxt92QHKnkhbAvWc2yRWQ"
+				"bzz-raw://901020d7a55d5d52d52f90f19260bfe0ee2a444acf9c26e872f304bb31d05985",
+				"dweb:/ipfs/QmSM3UwWjzvnY8NiA7u1PtTtUwQHU8fwxouctxKPRjBX6N"
 			]
 		},
 		"hardhat/console.sol": {
