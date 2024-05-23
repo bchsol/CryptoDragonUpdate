@@ -9,7 +9,7 @@ import {
   useWeb3ModalProvider,
   useWeb3ModalAccount,
 } from "@web3modal/ethers/react";
-import { BrowserProvider, Contract, formatUnits } from "ethers";
+import { BrowserProvider, Contract } from "ethers";
 
 const contractAddress = dragonContractData.AddressSepolia;
 const abi = dragonContractData.Abi;
@@ -18,8 +18,8 @@ function Breed() {
   const [isMaleModalOpen, setIsMaleModalOpen] = useState(false);
   const [isFemaleModalOpen, setIsFemaleModalOpen] = useState(false);
 
-  const [selectedHusband, setSelectedHusband] = useState(0);
-  const [selectedWife, setSelectedWife] = useState(0);
+  const [selectedHusband, setSelectedHusband] = useState();
+  const [selectedWife, setSelectedWife] = useState();
 
   const [maleNftIds, setMaleNftIds] = useState([]);
   const [femaleNftIds, setFemaleNftIds] = useState([]);
@@ -31,58 +31,91 @@ function Breed() {
     if (isMaleModalOpen) {
       showMaleNfts();
     }
+  }, [isMaleModalOpen]);
+
+  useEffect(() => {
     if (isFemaleModalOpen) {
       showFemaleNfts();
     }
-  }, [isMaleModalOpen, isFemaleModalOpen]);
+  }, [isFemaleModalOpen]);
 
   const showMaleNfts = async () => {
-    const ethersProvider = new BrowserProvider(walletProvider);
-    const nfts = await fetchNfts(ethersProvider, address);
-    const maleIds = [];
-    for (let i = 0; i < nfts.length; i++) {
-      if (
-        nfts[i].value.tokenInfo.growth == "adult" &&
-        nfts[i].value.tokenInfo.gender == 1
-      ) {
-        maleIds.push(nfts[i]);
-      }
+    try {
+      const ethersProvider = new BrowserProvider(walletProvider);
+      const nfts = await fetchNfts(ethersProvider, address);
+      const maleIds = nfts.filter(
+        (nft) =>
+          Number(nft.growthInfo.currentStage) == 3 && nft.tokenInfo.gender == 1
+      );
+
+      setMaleNftIds(maleIds);
+    } catch (error) {
+      console.error("Error fetching male NFTs:", error);
     }
-    setMaleNftIds(maleIds);
   };
   const showFemaleNfts = async () => {
-    const ethersProvider = new BrowserProvider(walletProvider);
-    const nfts = await fetchNfts(ethersProvider, address);
-    const femaleIds = [];
-    for (let i = 0; i < nfts.length; i++) {
-      if (
-        nfts[i].value.tokenInfo.growth == "adult" &&
-        nfts[i].value.tokenInfo.gender == 2
-      ) {
-        femaleIds.push(nfts[i]);
-      }
+    try {
+      const ethersProvider = new BrowserProvider(walletProvider);
+      const nfts = await fetchNfts(ethersProvider, address);
+      const femaleIds = nfts.filter(
+        (nft) =>
+          Number(nft.growthInfo.currentStage) == 3 && nft.tokenInfo.gender == 2
+      );
+
+      setFemaleNftIds(femaleIds);
+    } catch (error) {
+      console.error("Error fetching female NFTs:", error);
     }
-    setFemaleNftIds(femaleIds);
+  };
+
+  const getRandomType = () => {
+    return Math.floor(Math.random() * 2);
   };
 
   const breed = async () => {
-    if (!isConnected) throw Error("User disconnected");
+    try {
+      if (!isConnected) throw Error("User disconnected");
 
-    const ethersProvider = new BrowserProvider(walletProvider);
-    const signer = await ethersProvider.getSigner();
-    const signerContract = new Contract(contractAddress, abi, signer);
+      const ethersProvider = new BrowserProvider(walletProvider);
+      const signer = await ethersProvider.getSigner();
+      const signerContract = new Contract(contractAddress, abi, signer);
+      let tokenType = "";
 
-    let tx = await signerContract.breed(selectedHusband.id, selectedWife.id);
+      if (getRandomType() == 0) {
+        tokenType = selectedHusband.tokenInfo.tokenType;
+      } else {
+        tokenType = selectedWife.tokenInfo.tokenType;
+      }
 
-    const receipt = await tx.wait();
-    console.log(receipt);
+      let tx = await signerContract.breed(
+        tokenType,
+        Number(selectedHusband.id),
+        Number(selectedWife.id)
+      );
+
+      const receipt = await tx.wait();
+      console.log(receipt);
+
+      alert("Success");
+    } catch (error) {
+      console.log(error);
+      alert("Failed");
+    }
   };
 
-  const checkHandleMale = (id) => {
-    setSelectedHusband(id);
+  const checkHandleMale = (nft) => {
+    if (selectedHusband && selectedHusband.id == nft.id) {
+      setSelectedHusband(null);
+    } else {
+      setSelectedHusband(nft);
+    }
   };
-  const checkHandleFemale = (id) => {
-    setSelectedWife(id);
+  const checkHandleFemale = (nft) => {
+    if (selectedWife && selectedWife.id == nft.id) {
+      setSelectedWife(null);
+    } else {
+      setSelectedWife(nft);
+    }
   };
 
   return (
@@ -92,7 +125,7 @@ function Breed() {
         size="lg"
         onHide={() => {
           setIsMaleModalOpen(false);
-          setSelectedHusband(0);
+          setSelectedHusband(null);
         }}
         centered
       >
@@ -102,21 +135,21 @@ function Breed() {
         <Modal.Body>
           <Row xs={1} sm={2} md={3} lg={4} xl={4} xxl={5} gap={4}>
             {maleNftIds?.map((nftId) => (
-              <Col
-                key={nftId.value.id}
-                style={{ margin: 0, paddingRight: 170 }}
-              >
+              <Col key={nftId.id} style={{ margin: 0, paddingRight: 170 }}>
                 <Card
                   border="dark"
                   className="text-center"
                   style={{ width: "10rem" }}
                 >
-                  <Card.Img src={nftId.value.url} />
-                  <Card.Title>{nftId.value.name}</Card.Title>
+                  <Card.Img src={nftId.imageUrl} />
+                  <Card.Title>{nftId.name}</Card.Title>
                   <Card.Footer>
                     <Form.Check
-                      type="radio"
+                      type="checkbox"
                       name="MaleNft"
+                      checked={
+                        selectedHusband && selectedHusband.id == nftId.id
+                      }
                       onChange={() => checkHandleMale(nftId)}
                     />
                   </Card.Footer>
@@ -141,7 +174,7 @@ function Breed() {
         size="lg"
         onHide={() => {
           setIsFemaleModalOpen(false);
-          setSelectedWife(0);
+          setSelectedWife(null);
         }}
         centered
       >
@@ -151,21 +184,19 @@ function Breed() {
         <Modal.Body>
           <Row xs={1} sm={2} md={3} lg={4} xl={4} xxl={5} gap={4}>
             {femaleNftIds?.map((nftId) => (
-              <Col
-                key={nftId.value.id}
-                style={{ margin: 0, paddingRight: 170 }}
-              >
+              <Col key={nftId.id} style={{ margin: 0, paddingRight: 170 }}>
                 <Card
                   border="dark"
                   className="text-center"
                   style={{ width: "10rem" }}
                 >
-                  <Card.Img src={nftId.value.url} />
-                  <Card.Title>{nftId.value.name}</Card.Title>
+                  <Card.Img src={nftId.imageUrl} />
+                  <Card.Title>{nftId.name}</Card.Title>
                   <Card.Footer>
                     <Form.Check
-                      type="radio"
+                      type="checkbox"
                       name="FemaleNft"
+                      checked={selectedWife && selectedWife.id == nftId.id}
                       onChange={() => checkHandleFemale(nftId)}
                     />
                   </Card.Footer>
@@ -221,7 +252,7 @@ function Breed() {
               }}
             >
               {selectedHusband ? (
-                <Image fluid src={selectedHusband.url} />
+                <Image fluid src={selectedHusband.imageUrl} />
               ) : (
                 <span>Husband</span>
               )}
@@ -249,7 +280,7 @@ function Breed() {
               style={{ display: "flex", flexDirection: "column", gap: "10px" }}
             >
               {selectedWife ? (
-                <Image fluid src={selectedWife.url} />
+                <Image fluid src={selectedWife.imageUrl} />
               ) : (
                 <span>Wife</span>
               )}
@@ -265,6 +296,7 @@ function Breed() {
             className="breed"
             style={{ magin: "auto", display: "block" }}
             onClick={breed}
+            disabled={!selectedHusband || !selectedWife}
           >
             Breed Now
           </Button>

@@ -1,15 +1,6 @@
 const json = {
   AddressSepolia: "0x6DB011858695C0fCA94d3e2e0Ff992fDf5Cd7a98",
-  AddressGanache: "0x27Ca207d6ff4BBE468111a237F88d8d4B1a6123A",
   AddressMainNet: "",
-  // AbiFunc: [
-  //   /// Call
-  //   "function name() view returns (string)",
-  //   "function symbol() view returns (string)",
-  //   /// Send
-  //   "function genesisMint(address owner) external",
-  //   "function approve(address spender, uint256 amount)",
-  // ],
   Abi: [
     {
       inputs: [

@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "./Breeding.sol";
 
 contract Token is Breeding {
-    uint256 public constant GENESIS_LIMIT = 10;
+    uint256 public constant GENESIS_LIMIT = 100;
     uint256 public genesisCount;
     constructor(address initialOwner, string memory name, string memory symbol) Breeding(initialOwner,name,symbol) {
 

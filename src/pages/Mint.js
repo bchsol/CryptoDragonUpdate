@@ -7,7 +7,7 @@ import {
   useWeb3ModalProvider,
   useWeb3ModalAccount,
 } from "@web3modal/ethers/react";
-import { BrowserProvider, Contract, formatUnits } from "ethers";
+import { BrowserProvider, Contract } from "ethers";
 
 const contractAddress = dragonContractData.AddressSepolia;
 const abi = dragonContractData.Abi;
@@ -16,38 +16,53 @@ function Mint() {
   const [currentSupply, setCurrentSupply] = useState(0);
   const [maxSupply, setMaxSupply] = useState(0);
   const [transaction, setTransaction] = useState();
+  const [loading, setLoading] = useState(false);
 
   const { address, chainId, isConnected } = useWeb3ModalAccount();
   const { walletProvider } = useWeb3ModalProvider();
 
   useEffect(() => {
-    const update = async () => {
-      if (!isConnected) throw Error("User disconnected");
+    const updateSupply = async () => {
+      try {
+        if (!isConnected) throw Error("User disconnected");
+
+        const ethersProvider = new BrowserProvider(walletProvider);
+        const signer = await ethersProvider.getSigner();
+        const providerContract = new Contract(contractAddress, abi, signer);
+
+        let _maxSupply = Number(await providerContract.GENESIS_LIMIT());
+        setMaxSupply(_maxSupply);
+        let _currentSupply = Number(await providerContract.genesisCount());
+        setCurrentSupply(_currentSupply);
+      } catch (error) {
+        console.error("Failed to fetch supply data:", error);
+      }
+    };
+    updateSupply();
+  }, [isConnected, walletProvider, transaction]);
+
+  const handleMint = async () => {
+    try {
+      if (chainId != "11155111") throw Error("Change Network");
 
       const ethersProvider = new BrowserProvider(walletProvider);
       const signer = await ethersProvider.getSigner();
-      const providerContract = new Contract(contractAddress, abi, signer);
+      const signerContract = new Contract(contractAddress, abi, signer);
 
-      let _maxSupply = Number(await providerContract.GENESIS_LIMIT());
-      setMaxSupply(_maxSupply);
-      let _currentSupply = Number(await providerContract.genesisCount());
-      setCurrentSupply(_currentSupply);
-    };
-    update();
-  }, [transaction]);
-
-  const handleMint = async () => {
-    //if (!isConnected) throw Error("User disconnected");
-
-    if (chainId != "11155111") throw Error("Change Network");
-
-    const ethersProvider = new BrowserProvider(walletProvider);
-    const signer = await ethersProvider.getSigner();
-    const signerContract = new Contract(contractAddress, abi, signer);
-    let tx = await signerContract.genesisMint(address, "angelcat");
-    const receipt = await tx.wait();
-    setTransaction(receipt);
-    console.log(receipt);
+      let tx = await signerContract.genesisMint(address, "angelcat");
+      const receipt = await tx.wait();
+      setTransaction(receipt);
+      console.log(receipt);
+      alert("Minting Success");
+    } catch (error) {
+      if (maxSupply == currentSupply) {
+        alert("Mint Ended: Max Supply Reached");
+      } else {
+        alert("Transaction Failed: " + error.message);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -104,13 +119,17 @@ function Mint() {
               marginTop: 24,
             }}
           >
-            <button size="sm" onClick={handleMint}>
-              Mint
+            <button
+              size="sm"
+              onClick={handleMint}
+              disabled={loading || !isConnected}
+            >
+              {loading ? "Minting..." : "Mint"}
             </button>
           </div>
           <div className="explan" style={{ fontSize: 17, marginTop: 60 }}>
             <p>
-              Mumbai Testnet
+              Sepolia Testnet
               <br />
             </p>
           </div>

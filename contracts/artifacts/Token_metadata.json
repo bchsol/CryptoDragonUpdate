@@ -1183,11 +1183,11 @@
 			]
 		},
 		"Token.sol": {
-			"keccak256": "0xca8c3e3f53114fdebe897a4bafd75c981144fbc09f5accd39494ca56234e05ed",
+			"keccak256": "0x657f1fe96f57b264082fd5f55d559f58a42ff1c3ee745c15f1f8ef1b7f57527d",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://d2e4cd5e3757235ec3aab704a5545b935b79334e4553cc629a1164e36737c492",
-				"dweb:/ipfs/QmP2jnyuQm4qCMesE7nnZjY7zQZ2uAZeqXhHWjcKyh1pbn"
+				"bzz-raw://750ed41881f97453461813b3eac2fe85f3933f8280bab52f05920f7304bce730",
+				"dweb:/ipfs/QmUGZebr6GvooRFsm8macLezEQcaprmuw6kMgm2rqR4Vfc"
 			]
 		},
 		"TokenBase.sol": {

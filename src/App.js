@@ -6,9 +6,9 @@ import Breed from "./pages/Breed";
 import Collection from "./pages/Collection";
 
 import { createWeb3Modal, defaultConfig } from "@web3modal/ethers/react";
-const projectId = "YOUR_PROJECT_ID";
 
-// 2. Set chains
+const projectId = "projectId";
+
 const testnet = {
   chainId: 11155111,
   name: "Sepolia",
@@ -17,36 +17,18 @@ const testnet = {
   rpcUrl: "https://rpc.sepolia.org/",
 };
 
-const localnet = {
-  chainId: 1337,
-  name: "ganache",
-  currency: "ETH",
-  explorerUrl: "",
-  rpcUrl: "http://127.0.0.1:8545",
-};
-
-// 3. Create a metadata object
 const metadata = {
-  name: "My Website",
-  description: "My Website description",
-  url: "https://mywebsite.com", // origin must match your domain & subdomain
-  icons: ["https://avatars.mywebsite.com/"],
+  name: "Crypto Dragon",
+  description:
+    "Crypto Dragon is a contract developed using the Dragon Village collection developed by Hibro on the blockchain.",
+  url: "https://github.com/bchsol/CryptoDragon",
 };
 
-// 4. Create Ethers config
 const ethersConfig = defaultConfig({
   /*Required*/
   metadata,
-
-  /*Optional*/
-  enableEIP6963: true, // true by default
-  enableInjected: true, // true by default
-  enableCoinbase: true, // true by default
-  rpcUrl: "...", // used for the Coinbase SDK
-  defaultChainId: 1, // used for the Coinbase SDK
 });
 
-// 5. Create a Web3Modal instance
 createWeb3Modal({
   ethersConfig,
   chains: [testnet],
