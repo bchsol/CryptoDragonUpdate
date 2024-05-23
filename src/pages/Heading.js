@@ -2,11 +2,12 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Navbar, Container, Nav, Button } from "react-bootstrap";
 
-import { useWeb3Modal, useWeb3ModalAccount } from "@web3modal/ethers/react";
+import { useWeb3Modal } from "@web3modal/ethers/react";
+import { useWeb3ModalAccount } from "@web3modal/ethers/react";
 
 function Heading() {
+  const { address, chainId, isConnected } = useWeb3ModalAccount();
   const { open } = useWeb3Modal();
-  const { address, isConnected } = useWeb3ModalAccount();
   const truncateAccount = address
     ? address.substring(0, 6) + "..." + address.substring(address.length - 4)
     : null;

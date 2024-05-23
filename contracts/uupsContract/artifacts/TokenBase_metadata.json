@@ -714,6 +714,19 @@
 				"inputs": [
 					{
 						"internalType": "string",
+						"name": "_imgEx",
+						"type": "string"
+					}
+				],
+				"name": "setImageExtension",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
 						"name": "_metaDec",
 						"type": "string"
 					}
@@ -1246,11 +1259,11 @@
 			]
 		},
 		"uupsContract/TokenBase.sol": {
-			"keccak256": "0x28f13501ceb8438eae9b97015041f92c0de42fd19dea6ef3505b8ebad1c290de",
+			"keccak256": "0x730ce2fe0b506646a2f6fce6d13c477f66b6e2eaaaedf727b61eba08fc131797",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://01273d461be979aeb44776719cb5649157675bc10a0e3f920e2a06be7d4e4a23",
-				"dweb:/ipfs/QmeWZ3WLw2e7ThrUq7ZGqaP6bvKfhJx3JkXZEb3XwGmPzP"
+				"bzz-raw://b97d68222cfa279db29aa042f13b53990a5838c1613395f6ec0d3b1887162ba1",
+				"dweb:/ipfs/QmRzwVySzitn7XpcogRS2DyGTSCVqEeecNCrZswxaDexXJ"
 			]
 		}
 	},

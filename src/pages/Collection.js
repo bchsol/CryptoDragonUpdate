@@ -2,21 +2,18 @@ import React, { useEffect, useState } from "react";
 import { Row, Col, Card, Button, Modal } from "react-bootstrap";
 import * as s from "../Style/globalStyles";
 
-import { BrowserProvider, ethers, Contract } from "ethers";
-import {
-  useWeb3ModalAccount,
-  useWeb3ModalProvider,
-} from "@web3modal/ethers/react";
 import dragonContractData from "../contracts/dragonContract";
 import { fetchNfts } from "../blockchain/fetchData";
 
-const contractAddress = dragonContractData.AddressMumbai;
+import {
+  useWeb3ModalProvider,
+  useWeb3ModalAccount,
+} from "@web3modal/ethers/react";
+import { BrowserProvider, Contract, formatUnits } from "ethers";
+const contractAddress = dragonContractData.AddressSepolia;
 const abi = dragonContractData.Abi;
 
 function Collection() {
-  const { walletProvider } = useWeb3ModalProvider();
-  const { address } = useWeb3ModalAccount();
-
   const [nftIds, setNftIds] = useState([]);
   const [show, setShow] = useState(false);
 
@@ -29,6 +26,8 @@ function Collection() {
   const [timeRemaining, setTimeRemaining] = useState();
   const [selectedNft, setSelectedNft] = useState();
 
+  const { address, chainId, isConnected } = useWeb3ModalAccount();
+  const { walletProvider } = useWeb3ModalProvider();
   useEffect(() => {
     fetchMyNfts();
   }, []);
@@ -40,17 +39,16 @@ function Collection() {
   };
 
   const getTokenInfo = async (info) => {
-    let gender = ethers.toNumber(info.gender);
-    let father = ethers.toNumber(info.husbandId);
-    let mother = ethers.toNumber(info.wifeId);
-    let generation = ethers.toNumber(info.generation);
+    let gender = Number(info.gender);
+    let father = Number(info.husband);
+    let mother = Number(info.wifeId);
+    let generation = Number(info.generation);
     let growth = info.growth;
     setGender(gender);
     setFather(father);
     setMother(mother);
     setGeneration(generation);
     setStage(growth);
-
     setShow(true);
   };
 
@@ -77,8 +75,7 @@ function Collection() {
     const ethersProvider = new BrowserProvider(walletProvider);
     const providerContract = new Contract(contractAddress, abi, ethersProvider);
     const growInfo = await providerContract.getGrowthInfo(tokenId);
-
-    setTimeRemaining(ethers.toNumber(growInfo.timeRemaining));
+    setTimeRemaining(Number(growInfo.timeRemaining));
     setSelectedNft(tokenId);
   };
 

@@ -315,7 +315,25 @@
 				"type": "function"
 			},
 			{
+				"inputs": [],
+				"name": "baseTokenURI",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [
+					{
+						"internalType": "string",
+						"name": "tokenType",
+						"type": "string"
+					},
 					{
 						"internalType": "uint256",
 						"name": "husbandId",
@@ -336,6 +354,19 @@
 					}
 				],
 				"stateMutability": "payable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "dataURI",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -470,6 +501,19 @@
 			},
 			{
 				"inputs": [],
+				"name": "metaDescription",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "name",
 				"outputs": [
 					{
@@ -593,26 +637,11 @@
 				"inputs": [
 					{
 						"internalType": "string",
-						"name": "isGen",
-						"type": "string"
-					},
-					{
-						"internalType": "uint256",
-						"name": "gender",
-						"type": "uint256"
-					},
-					{
-						"internalType": "string",
-						"name": "growthStage",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "uri",
+						"name": "_dataURI",
 						"type": "string"
 					}
 				],
-				"name": "setMetadataURI",
+				"name": "setDataURI",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -620,13 +649,34 @@
 			{
 				"inputs": [
 					{
-						"internalType": "uint256",
-						"name": "tokenId",
-						"type": "uint256"
-					},
+						"internalType": "string",
+						"name": "_imgEx",
+						"type": "string"
+					}
+				],
+				"name": "setImageExtension",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
 					{
 						"internalType": "string",
-						"name": "url",
+						"name": "_metaDec",
+						"type": "string"
+					}
+				],
+				"name": "setMetaDescription",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_tokenURI",
 						"type": "string"
 					}
 				],
@@ -1018,19 +1068,19 @@
 			]
 		},
 		"Breeding.sol": {
-			"keccak256": "0x0094958f5286b8003f193b236992be653193794a6439623f1c19ff67e93b0bc9",
+			"keccak256": "0x5c6985143abf875f7f532c8569d432f06117747e508c7cd0b288391d44f421cf",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://0540c07868bb138e22bb2ea5495252eb49d4ae95dc3eae9dc0f45c70c4382d64",
-				"dweb:/ipfs/Qmcmtc6WbQn9KJEiSZE1VxGUyjB9DRP99EbheS1E8NwU9d"
+				"bzz-raw://172ac7ace1a4b0dda0b09e5c0687503a34d501eb7453102a16c1b10c4f7919d9",
+				"dweb:/ipfs/QmbgmgekwdhvnbxzFSAKzarSj7g4RAo5t6f6FmBG1V9AEs"
 			]
 		},
 		"TokenBase.sol": {
-			"keccak256": "0x583e1ffd3022b949450f27f5b3cb0522579c6b1070418c03a3452ee594c9e8ea",
+			"keccak256": "0x1cde8fef380481d9cbc1b49d5a5aac9c0958bc718e85fcd41d203bd9e74d7664",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://901020d7a55d5d52d52f90f19260bfe0ee2a444acf9c26e872f304bb31d05985",
-				"dweb:/ipfs/QmSM3UwWjzvnY8NiA7u1PtTtUwQHU8fwxouctxKPRjBX6N"
+				"bzz-raw://c008610bd4145e5a019448a2bcdd1ca58a75a6ea17f13a9acc97c961583b2af1",
+				"dweb:/ipfs/QmVgTRPvPgE7gULRU55EN88iei5BxqtcH1paJvRuvXwz68"
 			]
 		},
 		"hardhat/console.sol": {

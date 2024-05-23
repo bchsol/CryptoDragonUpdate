@@ -18,7 +18,8 @@ contract Token is Breeding {
         uint256 husbandId,
         uint256 wifeId,
         uint256 generation,
-        uint256 birth){
+        uint256 birth,
+        string memory tokenType){
             Token storage token = tokens[id];
 
             gender = token.gender;
@@ -26,6 +27,7 @@ contract Token is Breeding {
             wifeId = token.wifeId;
             generation = token.generation;
             birth = token.birth;
+            tokenType = token.tokenType;
     }
 
     function getUserNftIds(address user) external view returns (uint256[] memory) {

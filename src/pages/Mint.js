@@ -1,73 +1,50 @@
-import { BrowserProvider, Contract, ethers } from "ethers";
 import React, { useEffect, useState } from "react";
 import * as s from "../Style/globalStyles";
-import {
-  useWeb3ModalAccount,
-  useWeb3ModalProvider,
-} from "@web3modal/ethers/react";
 
 import dragonContractData from "../contracts/dragonContract";
-import { uri } from "../ipfs/imageURI";
 
-const contractAddress = dragonContractData.AddressMumbai;
+import {
+  useWeb3ModalProvider,
+  useWeb3ModalAccount,
+} from "@web3modal/ethers/react";
+import { BrowserProvider, Contract, formatUnits } from "ethers";
+
+const contractAddress = dragonContractData.AddressSepolia;
 const abi = dragonContractData.Abi;
 
 function Mint() {
-  const { address, isConnected, chainId } = useWeb3ModalAccount();
-  const { walletProvider } = useWeb3ModalProvider();
-
   const [currentSupply, setCurrentSupply] = useState(0);
   const [maxSupply, setMaxSupply] = useState(0);
   const [transaction, setTransaction] = useState();
 
+  const { address, chainId, isConnected } = useWeb3ModalAccount();
+  const { walletProvider } = useWeb3ModalProvider();
+
   useEffect(() => {
     const update = async () => {
-      const ethersProvider = new BrowserProvider(walletProvider);
-      //const signer = await ethersProvider.getSigner();
-      const providerContract = new Contract(
-        contractAddress,
-        abi,
-        ethersProvider
-      );
+      if (!isConnected) throw Error("User disconnected");
 
-      let _maxSupply = ethers.toNumber(await providerContract.GENESIS_LIMIT());
+      const ethersProvider = new BrowserProvider(walletProvider);
+      const signer = await ethersProvider.getSigner();
+      const providerContract = new Contract(contractAddress, abi, signer);
+
+      let _maxSupply = Number(await providerContract.GENESIS_LIMIT());
       setMaxSupply(_maxSupply);
-      let _currentSupply = ethers.toNumber(
-        await providerContract.genesisCount()
-      );
+      let _currentSupply = Number(await providerContract.genesisCount());
       setCurrentSupply(_currentSupply);
     };
     update();
   }, [transaction]);
 
   const handleMint = async () => {
-    if (!isConnected) throw Error("User disconnected");
+    //if (!isConnected) throw Error("User disconnected");
 
-    if (chainId != "0x13881n") {
-      await window.ethereum.request({
-        method: "wallet_addEthereumChain",
-        params: [
-          {
-            chainId: "0x13881",
-            chainName: "Matic Mumbai",
-            rpcUrls: ["https://rpc-mumbai.maticvigil.com/"],
-            nativeCurrency: {
-              name: "MATIC",
-              symbol: "MATIC",
-              decimals: 18,
-            },
-            blockExplorerUrls: ["https://mumbai.polygonscan.com/"],
-          },
-        ],
-      });
-    }
+    if (chainId != "11155111") throw Error("Change Network");
 
     const ethersProvider = new BrowserProvider(walletProvider);
     const signer = await ethersProvider.getSigner();
     const signerContract = new Contract(contractAddress, abi, signer);
-
-    let tx = await signerContract.genesisMint(address);
-
+    let tx = await signerContract.genesisMint(address, "angelcat");
     const receipt = await tx.wait();
     setTransaction(receipt);
     console.log(receipt);
@@ -142,5 +119,4 @@ function Mint() {
     </s.Screen>
   );
 }
-
 export default Mint;

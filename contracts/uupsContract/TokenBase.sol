@@ -8,6 +8,12 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
+/*
+    1. setDataURI : image base uri
+    2. setImageExtension : .webp, .png ...
+    3. setMetaDescription : "Token description"
+
+ */
 contract TokenBase is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradeable, OwnableUpgradeable, UUPSUpgradeable {
     enum GrowthStage{Egg, Hatch, Hatchling, Adult}
     mapping(uint256=>GrowthStage) private growthStages;
@@ -206,7 +212,6 @@ contract TokenBase is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradea
             abi.encodePacked(
                 '{"name": "Dragon #',
                 Strings.toString(tokenId),
-                metaDescription,
                 '","external_url":"https://github.com/bchsol/CryptoDragon","image":"',
                 dataURI,
                 string.concat(image,imageExtension)
@@ -216,18 +221,6 @@ contract TokenBase is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradea
             string memory jsonPostTraits = '"}]}';
 
             return string(abi.encodePacked("data:application/json;utf8,", jsonPreImage, nftMetaProperty, jsonPostTraits));
-            
-            // string memory jsonPreImage = string.concat(
-            //     string.concat(string.concat('{"name": "Dragon #', Strings.toString(tokenId)),
-            //         metaDescription,'","external_url":"https://https://github.com/bchsol/CryptoDragon","image":"'),
-            //         string.concat(dataURI, image));
-                
-            //     string memory nftMetaProperty = string.concat('","attributes":[{"trait_type":"Dragon","value":"',
-            //     tokens[tokenId].tokenType
-            // );
-            // string memory jsonPostTraits = '"}]}';
-
-            // return string.concat( "data:application/json;utf8,", string.concat(string.concat(jsonPreImage, nftMetaProperty), jsonPostTraits));
         }
         
     }

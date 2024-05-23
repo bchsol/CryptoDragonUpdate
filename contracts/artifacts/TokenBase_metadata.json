@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.8.24+commit.e11b9ed9"
+		"version": "0.8.25+commit.b61c2a91"
 	},
 	"language": "Solidity",
 	"output": {
@@ -315,6 +315,32 @@
 				"type": "function"
 			},
 			{
+				"inputs": [],
+				"name": "baseTokenURI",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "dataURI",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [
 					{
 						"internalType": "uint256",
@@ -415,6 +441,19 @@
 						"internalType": "bool",
 						"name": "",
 						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "metaDescription",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
 					}
 				],
 				"stateMutability": "view",
@@ -545,26 +584,11 @@
 				"inputs": [
 					{
 						"internalType": "string",
-						"name": "isGen",
-						"type": "string"
-					},
-					{
-						"internalType": "uint256",
-						"name": "gender",
-						"type": "uint256"
-					},
-					{
-						"internalType": "string",
-						"name": "growthStage",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "uri",
+						"name": "_dataURI",
 						"type": "string"
 					}
 				],
-				"name": "setMetadataURI",
+				"name": "setDataURI",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -572,13 +596,34 @@
 			{
 				"inputs": [
 					{
-						"internalType": "uint256",
-						"name": "tokenId",
-						"type": "uint256"
-					},
+						"internalType": "string",
+						"name": "_imgEx",
+						"type": "string"
+					}
+				],
+				"name": "setImageExtension",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
 					{
 						"internalType": "string",
-						"name": "url",
+						"name": "_metaDec",
+						"type": "string"
+					}
+				],
+				"name": "setMetaDescription",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "_tokenURI",
 						"type": "string"
 					}
 				],
@@ -827,9 +872,9 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"contracts/TokenBase.sol": "TokenBase"
+			"TokenBase.sol": "TokenBase"
 		},
-		"evmVersion": "shanghai",
+		"evmVersion": "cancun",
 		"libraries": {},
 		"metadata": {
 			"bytecodeHash": "ipfs"
@@ -969,12 +1014,12 @@
 				"dweb:/ipfs/QmVBEei6aTnvYNZp2CHYVNKyZS4q1KkjANfY39WVXZXVoT"
 			]
 		},
-		"contracts/TokenBase.sol": {
-			"keccak256": "0x56f9967202ce247df3602626b736dbdbbad42099c31bebfd8d9a5715b17fdd1f",
+		"TokenBase.sol": {
+			"keccak256": "0x1cde8fef380481d9cbc1b49d5a5aac9c0958bc718e85fcd41d203bd9e74d7664",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://742de25567cca2b08f351356c52a8ffee0ecb023f3aa7428b0c572226d80500f",
-				"dweb:/ipfs/QmNoYx8T2vaNtmKSZ2P1fAr8zfhfyYkH5QfE5cY4r68F9G"
+				"bzz-raw://c008610bd4145e5a019448a2bcdd1ca58a75a6ea17f13a9acc97c961583b2af1",
+				"dweb:/ipfs/QmVgTRPvPgE7gULRU55EN88iei5BxqtcH1paJvRuvXwz68"
 			]
 		},
 		"hardhat/console.sol": {

@@ -1,21 +1,20 @@
 import React, { useState, useEffect } from "react";
 
 import dragonContractData from "../contracts/dragonContract";
-import { BrowserProvider, Contract } from "ethers";
-import {
-  useWeb3ModalAccount,
-  useWeb3ModalProvider,
-} from "@web3modal/ethers/react";
+
 import { Modal, Button, Card, Row, Col, Form, Image } from "react-bootstrap";
 import { fetchNfts } from "../blockchain/fetchData";
 
-const contractAddress = dragonContractData.AddressMumbai;
+import {
+  useWeb3ModalProvider,
+  useWeb3ModalAccount,
+} from "@web3modal/ethers/react";
+import { BrowserProvider, Contract, formatUnits } from "ethers";
+
+const contractAddress = dragonContractData.AddressSepolia;
 const abi = dragonContractData.Abi;
 
 function Breed() {
-  const { address, isConnected } = useWeb3ModalAccount();
-  const { walletProvider } = useWeb3ModalProvider();
-
   const [isMaleModalOpen, setIsMaleModalOpen] = useState(false);
   const [isFemaleModalOpen, setIsFemaleModalOpen] = useState(false);
 
@@ -24,6 +23,9 @@ function Breed() {
 
   const [maleNftIds, setMaleNftIds] = useState([]);
   const [femaleNftIds, setFemaleNftIds] = useState([]);
+
+  const { address, chainId, isConnected } = useWeb3ModalAccount();
+  const { walletProvider } = useWeb3ModalProvider();
 
   useEffect(() => {
     if (isMaleModalOpen) {

@@ -1,5 +1,6 @@
 const json = {
-  AddressMumbai: "0xd74971dC7a2A68c40fEdee56a13eD38fcC86684B",
+  AddressSepolia: "0x6DB011858695C0fCA94d3e2e0Ff992fDf5Cd7a98",
+  AddressGanache: "0x27Ca207d6ff4BBE468111a237F88d8d4B1a6123A",
   AddressMainNet: "",
   // AbiFunc: [
   //   /// Call
@@ -30,6 +31,11 @@ const json = {
     },
     {
       inputs: [
+        {
+          internalType: "string",
+          name: "tokenType",
+          type: "string",
+        },
         {
           internalType: "uint256",
           name: "husbandId",
@@ -184,6 +190,19 @@ const json = {
           type: "uint256",
         },
       ],
+      name: "evolve",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "uint256",
+          name: "tokenId",
+          type: "uint256",
+        },
+      ],
       name: "feeding",
       outputs: [],
       stateMutability: "nonpayable",
@@ -195,6 +214,11 @@ const json = {
           internalType: "address",
           name: "owner",
           type: "address",
+        },
+        {
+          internalType: "string",
+          name: "tokenType",
+          type: "string",
         },
       ],
       name: "genesisMint",
@@ -292,19 +316,6 @@ const json = {
       ],
       name: "BatchMetadataUpdate",
       type: "event",
-    },
-    {
-      inputs: [
-        {
-          internalType: "uint256",
-          name: "tokenId",
-          type: "uint256",
-        },
-      ],
-      name: "evolve",
-      outputs: [],
-      stateMutability: "nonpayable",
-      type: "function",
     },
     {
       inputs: [
@@ -431,26 +442,11 @@ const json = {
       inputs: [
         {
           internalType: "string",
-          name: "isGen",
-          type: "string",
-        },
-        {
-          internalType: "uint256",
-          name: "gender",
-          type: "uint256",
-        },
-        {
-          internalType: "string",
-          name: "growthStage",
-          type: "string",
-        },
-        {
-          internalType: "string",
-          name: "uri",
+          name: "_dataURI",
           type: "string",
         },
       ],
-      name: "setMetadataURI",
+      name: "setDataURI",
       outputs: [],
       stateMutability: "nonpayable",
       type: "function",
@@ -458,13 +454,34 @@ const json = {
     {
       inputs: [
         {
-          internalType: "uint256",
-          name: "tokenId",
-          type: "uint256",
+          internalType: "string",
+          name: "_imgEx",
+          type: "string",
         },
+      ],
+      name: "setImageExtension",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
         {
           internalType: "string",
-          name: "url",
+          name: "_metaDec",
+          type: "string",
+        },
+      ],
+      name: "setMetaDescription",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "string",
+          name: "_tokenURI",
           type: "string",
         },
       ],
@@ -548,6 +565,32 @@ const json = {
           internalType: "uint256",
           name: "",
           type: "uint256",
+        },
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "baseTokenURI",
+      outputs: [
+        {
+          internalType: "string",
+          name: "",
+          type: "string",
+        },
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "dataURI",
+      outputs: [
+        {
+          internalType: "string",
+          name: "",
+          type: "string",
         },
       ],
       stateMutability: "view",
@@ -683,7 +726,7 @@ const json = {
         },
         {
           internalType: "string",
-          name: "growth",
+          name: "tokenType",
           type: "string",
         },
       ],
@@ -728,6 +771,19 @@ const json = {
           internalType: "bool",
           name: "",
           type: "bool",
+        },
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "metaDescription",
+      outputs: [
+        {
+          internalType: "string",
+          name: "",
+          type: "string",
         },
       ],
       stateMutability: "view",

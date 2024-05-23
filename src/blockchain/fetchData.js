@@ -2,7 +2,7 @@ import axios from "axios";
 import dragonContractData from "../contracts/dragonContract";
 import { Contract, ethers } from "ethers";
 
-const contractAddress = dragonContractData.AddressMumbai;
+const contractAddress = dragonContractData.AddressSepolia;
 const abi = dragonContractData.Abi;
 
 const fetchMetadata = async (ethersProvider, tokenId) => {
@@ -13,22 +13,24 @@ const fetchMetadata = async (ethersProvider, tokenId) => {
   ]);
 
   const tokenInfo = await providerContract.getToken(tokenId);
-  const _url = "https://" + metadataUrl.substring(7) + ".ipfs.nftstorage.link";
-  const response = await axios.get(_url);
-  const image = response.data.image.substring(7); // delete ipfs://
+  //const _url = "https://" + metadataUrl.substring(7) + ".ipfs.nftstorage.link";
+  const tokenUrl = metadataUrl.replace("data:application/json;utf8,", "");
+  const jsonObject = JSON.parse(tokenUrl);
+  const imageUrl = jsonObject.image;
+  //const image = await axios.get(_url);
+  //const image = response.data.image.substring(7); // delete ipfs://
 
   const tokenName = name + " #" + tokenId;
 
-  return { tokenName, image, tokenInfo };
+  return { tokenName, imageUrl, tokenInfo };
 };
 
 const fetchNftData = async (ethersProvider, tokenId) => {
-  const { tokenName, image, tokenInfo } = await fetchMetadata(
+  const { tokenName, imageUrl, tokenInfo } = await fetchMetadata(
     ethersProvider,
     tokenId
   );
-  const url = `https://${image}.ipfs.nftstorage.link`;
-  return { id: tokenId, name: tokenName, tokenInfo, url };
+  return { id: tokenId, name: tokenName, tokenInfo, imageUrl };
 };
 
 export const fetchNfts = async (ethersProvider, address) => {
@@ -39,5 +41,6 @@ export const fetchNfts = async (ethersProvider, address) => {
   const nfts = await Promise.allSettled(
     tokenIds.map((tokenId) => fetchNftData(ethersProvider, tokenId))
   );
+  console.log(nfts);
   return nfts;
 };
