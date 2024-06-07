@@ -4,6 +4,9 @@ import Heading from "./pages/Heading";
 import Mint from "./pages/Mint";
 import Breed from "./pages/Breed";
 import Collection from "./pages/Collection";
+import MarketPlace from "./pages/MarketPlace";
+
+import ItemDetail from "./pages/ItemDetail";
 
 import { createWeb3Modal, defaultConfig } from "@web3modal/ethers/react";
 
@@ -44,6 +47,8 @@ function App() {
         <Route path="/" element={<Mint />} />
         <Route path="/breed" element={<Breed />} />
         <Route path="/collection" element={<Collection />} />
+        <Route path="/market" element={<MarketPlace />} />
+        <Route path="/item/:id" element={<ItemDetail />} />
       </Routes>
     </>
   );

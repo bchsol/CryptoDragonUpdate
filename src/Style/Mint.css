@@ -1,0 +1,44 @@
+.screen-container {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  background-color: white;
+  text-align: center;
+}
+
+.mint-card {
+  top: 20vmin;
+  width: 50vmin;
+  position: absolute;
+}
+
+.card-top {
+  padding-bottom: 24px;
+  border-bottom: 2px solid rgb(0, 0, 0);
+  display: flex;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 24px;
+}
+
+.card-middle {
+  display: flex;
+  flex-direction: column;
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.card-bottom {
+  display: flex;
+  flex-direction: column;
+  margin-top: 24px;
+}
+
+.explan {
+  font-size: 17px;
+  margin-top: 60px;
+}

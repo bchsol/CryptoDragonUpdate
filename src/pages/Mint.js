@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import * as s from "../Style/globalStyles";
-
+import "../Style/Mint.css";
 import dragonContractData from "../contracts/dragonContract";
 
 import {
@@ -54,6 +54,7 @@ function Mint() {
       setTransaction(receipt);
       console.log(receipt);
       alert("Minting Success");
+      window.location.reload();
     } catch (error) {
       if (maxSupply == currentSupply) {
         alert("Mint Ended: Max Supply Reached");
@@ -67,58 +68,19 @@ function Mint() {
 
   return (
     <s.Screen>
-      <s.Container
-        flex={1}
-        ai={"center"}
-        style={{
-          backgroundColor: "white",
-          textAlign: "center",
-        }}
-      >
+      <s.Container flex={1} ai={"center"}>
         <div
           className="mint-card"
           style={{ top: "20vmin", width: "50vmin", position: "absolute" }}
         >
-          <div
-            className="card-top"
-            style={{
-              paddingBottom: 24,
-              borderBottom: "2px solid rgb(0,0,0)",
-              display: "flex",
-              justifyContent: "space-between",
-            }}
-          >
-            <span
-              className="Title"
-              style={{
-                fontSize: 24,
-                fontWeight: "bold",
-                marginTop: 24,
-              }}
-            >
-              Mint
-            </span>
+          <div className="card-top">
+            <span className="title">Mint</span>
           </div>
-          <div
-            className="card-middle"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              marginTop: 24,
-              marginBottom: 24,
-            }}
-          >
+          <div className="card-middle">
             {currentSupply} / {maxSupply}
           </div>
 
-          <div
-            className="card-bottom"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              marginTop: 24,
-            }}
-          >
+          <div className="card-bottom">
             <button
               size="sm"
               onClick={handleMint}
@@ -127,7 +89,7 @@ function Mint() {
               {loading ? "Minting..." : "Mint"}
             </button>
           </div>
-          <div className="explan" style={{ fontSize: 17, marginTop: 60 }}>
+          <div className="explan">
             <p>
               Sepolia Testnet
               <br />

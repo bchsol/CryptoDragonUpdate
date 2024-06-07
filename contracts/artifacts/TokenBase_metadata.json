@@ -1015,11 +1015,11 @@
 			]
 		},
 		"TokenBase.sol": {
-			"keccak256": "0x1cde8fef380481d9cbc1b49d5a5aac9c0958bc718e85fcd41d203bd9e74d7664",
+			"keccak256": "0x8edffd68cfc3a5db5204a48359a3423ad7aecd55a44515a9ee0e142d01d2f0f1",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://c008610bd4145e5a019448a2bcdd1ca58a75a6ea17f13a9acc97c961583b2af1",
-				"dweb:/ipfs/QmVgTRPvPgE7gULRU55EN88iei5BxqtcH1paJvRuvXwz68"
+				"bzz-raw://35ef1d148d942084db89347aa0cfd2ccfdcdd6616510fbb1e4fe09a8a26a429a",
+				"dweb:/ipfs/QmSx8SLoqzbJAGBC9BoAa6fgaW4b6ZEeAjrtzipNuVX6G8"
 			]
 		},
 		"hardhat/console.sol": {

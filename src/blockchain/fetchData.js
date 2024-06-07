@@ -27,7 +27,7 @@ const fetchMetadata = async (ethersProvider, tokenId) => {
   }
 };
 
-const fetchNftData = async (ethersProvider, tokenId) => {
+export const fetchNftData = async (ethersProvider, tokenId) => {
   try {
     const { tokenName, imageUrl, tokenInfo, growthInfo } = await fetchMetadata(
       ethersProvider,

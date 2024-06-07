@@ -23,4 +23,6 @@ export const Container = styled.div`
   background-image: ${({ image }) => (image ? `url(${image})` : "none")};
   background-size: cover;
   background-position: center;
+  background-color: white;
+  text-align: center;
 `;

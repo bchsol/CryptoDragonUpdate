@@ -2,3 +2,6 @@ node_modules
 angelcat
 .deps
 contracts/artifacts
+
+MarketPlace.css
+Collection.css

@@ -1,9 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Navbar, Container, Nav, Button } from "react-bootstrap";
-
-import { useWeb3Modal } from "@web3modal/ethers/react";
-import { useWeb3ModalAccount } from "@web3modal/ethers/react";
+import { useWeb3Modal, useWeb3ModalAccount } from "@web3modal/ethers/react";
+import "../Style/Heading.css";
 
 function Heading() {
   const { address, isConnected } = useWeb3ModalAccount();
@@ -20,40 +19,20 @@ function Heading() {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
-              <Link
-                to="/"
-                style={{
-                  color: "black",
-                  textDecoration: "none",
-                  marginRight: "25px",
-                  fontSize: "20px",
-                }}
-              >
+              <Link to="/" className="navbar-link">
                 Mint
               </Link>
 
-              <Link
-                to="/breed"
-                style={{
-                  color: "black",
-                  textDecoration: "none",
-                  marginRight: "25px",
-                  fontSize: "20px",
-                }}
-              >
+              <Link to="/breed" className="navbar-link">
                 Breed
               </Link>
 
-              <Link
-                to="/collection"
-                style={{
-                  color: "black",
-                  textDecoration: "none",
-                  marginRight: "25px",
-                  fontSize: "20px",
-                }}
-              >
+              <Link to="/collection" className="navbar-link">
                 Collection
+              </Link>
+
+              <Link to="/market" className="navbar-link">
+                Market
               </Link>
             </Nav>
             <Button variant="outline-dark" onClick={() => open()}>

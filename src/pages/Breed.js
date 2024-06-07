@@ -11,6 +11,8 @@ import {
 } from "@web3modal/ethers/react";
 import { BrowserProvider, Contract } from "ethers";
 
+import "../Style/Breed.css";
+
 const contractAddress = dragonContractData.AddressSepolia;
 const abi = dragonContractData.Abi;
 
@@ -97,6 +99,7 @@ function Breed() {
       console.log(receipt);
 
       alert("Success");
+      window.location.reload();
     } catch (error) {
       console.log(error);
       alert("Failed");
@@ -135,12 +138,8 @@ function Breed() {
         <Modal.Body>
           <Row xs={1} sm={2} md={3} lg={4} xl={4} xxl={5} gap={4}>
             {maleNftIds?.map((nftId) => (
-              <Col key={nftId.id} style={{ margin: 0, paddingRight: 170 }}>
-                <Card
-                  border="dark"
-                  className="text-center"
-                  style={{ width: "10rem" }}
-                >
+              <Col key={nftId.id} className="modal-col">
+                <Card border="dark" className="text-center card-custom">
                   <Card.Img src={nftId.imageUrl} />
                   <Card.Title>{nftId.name}</Card.Title>
                   <Card.Footer>
@@ -184,12 +183,8 @@ function Breed() {
         <Modal.Body>
           <Row xs={1} sm={2} md={3} lg={4} xl={4} xxl={5} gap={4}>
             {femaleNftIds?.map((nftId) => (
-              <Col key={nftId.id} style={{ margin: 0, paddingRight: 170 }}>
-                <Card
-                  border="dark"
-                  className="text-center"
-                  style={{ width: "10rem" }}
-                >
+              <Col key={nftId.id} className="modal-col">
+                <Card border="dark" className="text-center card-custom">
                   <Card.Img src={nftId.imageUrl} />
                   <Card.Title>{nftId.name}</Card.Title>
                   <Card.Footer>
@@ -207,7 +202,6 @@ function Breed() {
         </Modal.Body>
         <Modal.Footer>
           <Button
-            className="btn-confirm"
             variant="outline-dark"
             onClick={() => setIsFemaleModalOpen(false)}
           >
@@ -217,40 +211,14 @@ function Breed() {
       </Modal>
 
       <div>
-        <div
-          className="selected-btn"
-          style={{
-            padding: "10px 20px",
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "center",
-            marginTop: "15rem",
-          }}
-        >
+        <div className="selected-btn">
           <div
             className="husband"
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "20rem",
-              width: "20rem",
-              background: "transparent",
-              border: "2px solid blue",
-              cursor: "pointer",
-              marginRight: "13rem",
-            }}
             onClick={() => {
               setIsMaleModalOpen(true);
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px",
-              }}
-            >
+            <div className="nft-details">
               {selectedHusband ? (
                 <Image fluid src={selectedHusband.imageUrl} />
               ) : (
@@ -262,23 +230,11 @@ function Breed() {
 
           <div
             className="wife"
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "20rem",
-              width: "20rem",
-              background: "transparent",
-              border: "2px solid blue",
-              cursor: "pointer",
-            }}
             onClick={() => {
               setIsFemaleModalOpen(true);
             }}
           >
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "10px" }}
-            >
+            <div className="nft-details">
               {selectedWife ? (
                 <Image fluid src={selectedWife.imageUrl} />
               ) : (
@@ -288,10 +244,7 @@ function Breed() {
             </div>
           </div>
         </div>
-        <div
-          className="btn-breed"
-          style={{ display: "flex", justifyContent: "center" }}
-        >
+        <div className="btn-breed">
           <Button
             className="breed"
             style={{ magin: "auto", display: "block" }}
