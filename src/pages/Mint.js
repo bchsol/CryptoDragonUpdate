@@ -8,15 +8,26 @@ import {
   useWeb3ModalAccount,
 } from "@web3modal/ethers/react";
 import { BrowserProvider, Contract } from "ethers";
+import { Button, Card } from "react-bootstrap";
 
 const contractAddress = dragonContractData.AddressSepolia;
 const abi = dragonContractData.Abi;
+
+const options = [
+  { text: "이 알은 벛나무 주변에서 발견된다.", name: "popomo" },
+  { text: "이 알의 털은 매우 부드럽다.", name: "firetail" },
+  { text: "이 알은 불타오르고 있다.", name: "phoenix" },
+  { text: "이 알은 매우 붉고 뜨겁다.", name: "fire" },
+  { text: "이 알은 용암으로 이루어져 있다.", name: "volcano" },
+];
 
 function Mint() {
   const [currentSupply, setCurrentSupply] = useState(0);
   const [maxSupply, setMaxSupply] = useState(0);
   const [transaction, setTransaction] = useState();
   const [loading, setLoading] = useState(false);
+
+  const [selectedOptions, setSelectedOptions] = useState([]);
 
   const { address, chainId, isConnected } = useWeb3ModalAccount();
   const { walletProvider } = useWeb3ModalProvider();
@@ -30,10 +41,10 @@ function Mint() {
         const signer = await ethersProvider.getSigner();
         const providerContract = new Contract(contractAddress, abi, signer);
 
-        let _maxSupply = Number(await providerContract.GENESIS_LIMIT());
-        setMaxSupply(_maxSupply);
-        let _currentSupply = Number(await providerContract.genesisCount());
-        setCurrentSupply(_currentSupply);
+        // let _maxSupply = Number(await providerContract.GENESIS_LIMIT());
+        // setMaxSupply(_maxSupply);
+        // let _currentSupply = Number(await providerContract.genesisCount());
+        // setCurrentSupply(_currentSupply);
       } catch (error) {
         console.error("Failed to fetch supply data:", error);
       }
@@ -41,7 +52,19 @@ function Mint() {
     updateSupply();
   }, [isConnected, walletProvider, transaction]);
 
-  const handleMint = async () => {
+  useEffect(() => {
+    const randomOptions = [];
+    while (randomOptions.length < 3) {
+      const randomIndex = Math.floor(Math.random() * options.length);
+      const randomOption = options[randomIndex];
+      if (!randomOptions.includes(randomOption)) {
+        randomOptions.push(randomOption);
+      }
+    }
+    setSelectedOptions(randomOptions);
+  }, []);
+
+  const handleMint = async (optionName) => {
     try {
       if (chainId != "11155111") throw Error("Change Network");
 
@@ -49,7 +72,7 @@ function Mint() {
       const signer = await ethersProvider.getSigner();
       const signerContract = new Contract(contractAddress, abi, signer);
 
-      let tx = await signerContract.genesisMint(address, "angelcat");
+      let tx = await signerContract.genesisMint(address, optionName);
       const receipt = await tx.wait();
       setTransaction(receipt);
       console.log(receipt);
@@ -66,29 +89,52 @@ function Mint() {
     }
   };
 
+  const handleOptionSelect = (option) => {
+    console.log(option);
+    //option.forEach((opt) => handleMint(opt.name));
+  };
+
+  const handleRefrash = () => {
+    const randomOptions = [];
+    while (randomOptions.length < 3) {
+      const randomIndex = Math.floor(Math.random() * options.length);
+      const randomOption = options[randomIndex];
+      if (!randomOptions.includes(randomOption)) {
+        randomOptions.push(randomOption);
+      }
+    }
+    setSelectedOptions(randomOptions);
+  };
+
   return (
     <s.Screen>
-      <s.Container flex={1} ai={"center"}>
-        <div
-          className="mint-card"
-          style={{ top: "20vmin", width: "50vmin", position: "absolute" }}
-        >
+      <s.Container ai={"center"}>
+        <div className="mint-card">
           <div className="card-top">
             <span className="title">Mint</span>
           </div>
           <div className="card-middle">
-            {currentSupply} / {maxSupply}
+            <Button className="confirm-button" onClick={handleRefrash}></Button>
           </div>
 
           <div className="card-bottom">
-            <button
-              size="sm"
-              onClick={handleMint}
-              disabled={loading || !isConnected}
-            >
-              {loading ? "Minting..." : "Mint"}
-            </button>
+            <div className="options">
+              {selectedOptions.map((option, index) => (
+                <Card key={index} className="option">
+                  <p>
+                    <strong>{option.text}</strong>
+                  </p>
+                  <button
+                    className="card-button"
+                    onClick={() => handleOptionSelect(option.name)}
+                  >
+                    확인
+                  </button>
+                </Card>
+              ))}
+            </div>
           </div>
+
           <div className="explan">
             <p>
               Sepolia Testnet

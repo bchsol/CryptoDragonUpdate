@@ -12,6 +12,13 @@
   position: absolute;
 }
 
+.card-content {
+  padding: 20px;
+  max-height: 100px;
+
+  word-wrap: break-word;
+}
+
 .card-top {
   padding-bottom: 24px;
   border-bottom: 2px solid rgb(0, 0, 0);
@@ -26,16 +33,46 @@
 }
 
 .card-middle {
-  display: flex;
-  flex-direction: column;
-  margin-top: 24px;
-  margin-bottom: 24px;
+  text-align: right;
+  padding-top: 24px;
+  padding-bottom: 24px;
 }
 
 .card-bottom {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  justify-content: center;
   margin-top: 24px;
+}
+
+.options {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 20px;
+}
+
+.option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 200px;
+  height: 90px;
+  min-height: 90px;
+  padding: 10px 30px;
+}
+
+.card-button {
+  position: absolute;
+  top: 90px;
+}
+
+.confirm-button {
+  position: absolute;
+  background-image: url("../image/refresh.png");
+  background-size: cover;
+  width: 30px;
+  height: 30px;
 }
 
 .explan {
