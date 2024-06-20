@@ -4,17 +4,24 @@ pragma solidity ^0.8.20;
 import "./Breeding.sol";
 
 contract Token is Breeding {
-    uint256 public constant GENESIS_LIMIT = 100;
-    uint256 public genesisCount;
+
+    uint256 public mintCount;
+
+    bool public premiumMintEnabled;
+
     constructor(address initialOwner, string memory name, string memory symbol) Breeding(initialOwner,name,symbol) {
 
     }
 
-    function genesisMint(address owner, string calldata tokenType) external {
-        require( genesisCount < GENESIS_LIMIT, "limit exceeded");
+    function nomalMint(address owner, string calldata tokenType) external {
+        mintCount++;
+        mintToken(tokenType, 0, 0, 1, owner, false);
+    }
 
-        genesisCount++;
-        mintToken(tokenType,0, 0, 1, owner);
+    function premiumMint(address owner, string calldata tokenType) external {
+        require(premiumMintEnabled, "Premium minting is not enabled");
+        mintCount++;
+        mintToken(tokenType, 0,0,1,owner, true);
     }
 
     function getToken(uint256 id) external view returns(
@@ -42,5 +49,9 @@ contract Token is Breeding {
         }
         assembly { mstore(ids,counter) } // Adjust the size of the dynamic array
         return ids;
+    }
+
+    function isPremiumOpen(bool isEnabled) external onlyOwner {
+        premiumMintEnabled = isEnabled;
     }
 }

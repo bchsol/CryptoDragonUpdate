@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.8.25+commit.b61c2a91"
+		"version": "0.8.26+commit.8a97fa7a"
 	},
 	"language": "Solidity",
 	"output": {
@@ -257,6 +257,88 @@
 				"inputs": [
 					{
 						"indexed": true,
+						"internalType": "uint256",
+						"name": "husbandId",
+						"type": "uint256"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "wifeId",
+						"type": "uint256"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "childId",
+						"type": "uint256"
+					}
+				],
+				"name": "TokenBreed",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "newStage",
+						"type": "string"
+					}
+				],
+				"name": "TokenEvolved",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "newTime",
+						"type": "uint256"
+					}
+				],
+				"name": "TokenFeed",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "TokenMinted",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
 						"internalType": "address",
 						"name": "from",
 						"type": "address"
@@ -276,19 +358,6 @@
 				],
 				"name": "Transfer",
 				"type": "event"
-			},
-			{
-				"inputs": [],
-				"name": "GENESIS_LIMIT",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
 			},
 			{
 				"inputs": [
@@ -366,7 +435,7 @@
 						"type": "uint256"
 					}
 				],
-				"stateMutability": "payable",
+				"stateMutability": "nonpayable",
 				"type": "function"
 			},
 			{
@@ -422,37 +491,6 @@
 				"type": "function"
 			},
 			{
-				"inputs": [],
-				"name": "genesisCount",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "owner",
-						"type": "address"
-					},
-					{
-						"internalType": "string",
-						"name": "tokenType",
-						"type": "string"
-					}
-				],
-				"name": "genesisMint",
-				"outputs": [],
-				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
 				"inputs": [
 					{
 						"internalType": "uint256",
@@ -466,30 +504,6 @@
 						"internalType": "address",
 						"name": "",
 						"type": "address"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "uint256",
-						"name": "tokenId",
-						"type": "uint256"
-					}
-				],
-				"name": "getBreedInfo",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "releaseTime",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "count",
-						"type": "uint256"
 					}
 				],
 				"stateMutability": "view",
@@ -585,6 +599,30 @@
 			{
 				"inputs": [
 					{
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "getbreedData",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "releaseTime",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "count",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
 						"internalType": "address",
 						"name": "owner",
 						"type": "address"
@@ -607,6 +645,19 @@
 				"type": "function"
 			},
 			{
+				"inputs": [
+					{
+						"internalType": "bool",
+						"name": "isEnabled",
+						"type": "bool"
+					}
+				],
+				"name": "isPremiumOpen",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
 				"inputs": [],
 				"name": "metaDescription",
 				"outputs": [
@@ -614,6 +665,19 @@
 						"internalType": "string",
 						"name": "",
 						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "mintCount",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
 					}
 				],
 				"stateMutability": "view",
@@ -630,6 +694,24 @@
 					}
 				],
 				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "tokenType",
+						"type": "string"
+					}
+				],
+				"name": "nomalMint",
+				"outputs": [],
+				"stateMutability": "nonpayable",
 				"type": "function"
 			},
 			{
@@ -659,6 +741,37 @@
 						"internalType": "address",
 						"name": "",
 						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "tokenType",
+						"type": "string"
+					}
+				],
+				"name": "premiumMint",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "premiumMintEnabled",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
 					}
 				],
 				"stateMutability": "view",
@@ -1175,27 +1288,27 @@
 			]
 		},
 		"Breeding.sol": {
-			"keccak256": "0x91fdc6fb14354528eb91e909b36b18d044548876b3fe9975e145b181caa56c1f",
+			"keccak256": "0x0bfb34a6fe8be210b241c2a9c0bf4767ae94e9207f1a3f3fca8e67e5eef592b1",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://65ddd03e765069c871638997e738f972d87c556d4fe95d9de9b4787b087aa5de",
-				"dweb:/ipfs/Qmc5XryurdP6JyRjHP8Sq7WorJ2gPYPFaHmDAM3knZcPVs"
+				"bzz-raw://b88b2d9e5d24e4411d91aa72a2da7230a5afd5a63244c212ec3d5ba2a950d2b1",
+				"dweb:/ipfs/QmV2NxkLkdhTEcXvaaprKriNxQh2nJ1rpQiJgv8CMt6NYc"
 			]
 		},
 		"Token.sol": {
-			"keccak256": "0x657f1fe96f57b264082fd5f55d559f58a42ff1c3ee745c15f1f8ef1b7f57527d",
+			"keccak256": "0x427d2b19befe7f756a01d498eb33f05f507580fb94ce29fe0433f6a24f32c7a0",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://750ed41881f97453461813b3eac2fe85f3933f8280bab52f05920f7304bce730",
-				"dweb:/ipfs/QmUGZebr6GvooRFsm8macLezEQcaprmuw6kMgm2rqR4Vfc"
+				"bzz-raw://11eee7d67588732da0ed60d240cbee477c4db39bb99c26303ca617074b0b16ad",
+				"dweb:/ipfs/Qmaoi4t3ZRo5aFCh7YLXDwXFpR2CnN7TcFPZ5wFcUYAG6W"
 			]
 		},
 		"TokenBase.sol": {
-			"keccak256": "0x8edffd68cfc3a5db5204a48359a3423ad7aecd55a44515a9ee0e142d01d2f0f1",
+			"keccak256": "0xb928f734bd29bca996699b18470cd9b645a660a7063a62d3e3f92b189c7f7779",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://35ef1d148d942084db89347aa0cfd2ccfdcdd6616510fbb1e4fe09a8a26a429a",
-				"dweb:/ipfs/QmSx8SLoqzbJAGBC9BoAa6fgaW4b6ZEeAjrtzipNuVX6G8"
+				"bzz-raw://b3f4cb8d1c9a96a934181cb2375ab99a881b4e03e95a4354e1eb8bd40e9e8cc1",
+				"dweb:/ipfs/QmXowRAue2V7M2kMjY5GV175hRjQGG92Q5QNwgnxGJpXaJ"
 			]
 		},
 		"hardhat/console.sol": {

@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -13,6 +14,8 @@ contract Marketplace is Ownable,ReentrancyGuard {
     Counters.Counter private _itemsSold;
 
     uint256 public marketFeePer = 25;
+    IERC20 public paymentToken;
+    IERC721 public nftContract;
 
     struct MarketItem {
         uint256 itemId;
@@ -24,16 +27,15 @@ contract Marketplace is Ownable,ReentrancyGuard {
     }
 
     mapping(uint256 => uint256) private itemsByNFTToken;
-    
     mapping(uint256 => MarketItem) public items;
-    IERC721 public nftContract;
 
     event ItemListed(uint256 itemId,  uint256 tokenId,address owner, uint256 price);
     event ItemDelisted(uint256 itemId,  uint256 tokenId, address owner, uint256 price);
     event ItemBought(uint256 itemId,  uint256 tokenId, address owner, address buyer, uint256 price);
 
-    constructor(address _nftContract) Ownable(msg.sender) {
+    constructor(address _nftContract, address _paymentToken) Ownable(msg.sender) {
         nftContract = IERC721(_nftContract);
+        paymentToken = IERC20(_paymentToken);
     }
 
     function listItem( uint256 tokenId, uint256 price) public {
@@ -73,7 +75,8 @@ contract Marketplace is Ownable,ReentrancyGuard {
         MarketItem storage item = items[itemId];
         require(!item.sold, "Item is not for sale");
         require(!item.cancel, "Item is not for sale");
-        require(msg.value >= item.price, "Insufficient funds");
+        require(paymentToken.balanceOf(msg.sender) >= item.price, "Insufficient funds");
+        require(paymentToken.allowance(msg.sender, address(this)) >= item.price, "Insufficient allowance");
 
         uint256 fee = (item.price * marketFeePer) / 1000;
         uint256 sellerProceeds = item.price - fee;
@@ -84,10 +87,10 @@ contract Marketplace is Ownable,ReentrancyGuard {
         nftContract.transferFrom(item.owner, msg.sender, item.tokenId);
 
         // Transfer the fee to the market
-        payable(owner()).transfer(fee);
+        require(paymentToken.transferFrom(msg.sender, owner(), fee), "Fee transfer failed");
 
         // Transfer the sell price to the seller
-        item.owner.transfer(sellerProceeds);
+        require(paymentToken.transferFrom(msg.sender, item.owner, sellerProceeds), "Seller proceeds transfer failed");
 
         emit ItemBought(itemId, item.tokenId,item.owner,msg.sender, item.price);
     }

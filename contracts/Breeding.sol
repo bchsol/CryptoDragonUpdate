@@ -10,20 +10,24 @@ contract Breeding is TokenBase{
         uint256 count;
     }
 
-    mapping(uint256 => Breed) private breedInfo;
+    mapping(uint256 => Breed) private breedData;
+
+    event TokenBreed(uint256 indexed husbandId, uint256 indexed wifeId, uint256 indexed childId);
 
     constructor(address initialOwner, string memory name, string memory symbol) TokenBase(initialOwner,name,symbol) {}
 
-    function breed(string calldata tokenType, uint256 husbandId, uint256 wifeId) external payable returns(uint256){
+    function breed(string calldata tokenType, uint256 husbandId, uint256 wifeId) external returns(uint256){
         require(ownerOf(husbandId) == msg.sender && ownerOf(wifeId) == msg.sender, "Not owner");
         require(!_isIncest(husbandId,wifeId), "Incest");
         require(_canBreed(husbandId) && _canBreed(wifeId), "Breeding not allowed yet");
         require(_areDifferentGenders(husbandId,wifeId), "Same gender");
 
-        _updateBreedInfo(husbandId);
-        _updateBreedInfo(wifeId);
+        _updateBreedData(husbandId);
+        _updateBreedData(wifeId);
 
         uint256 tokenId = _createChildToken(tokenType, husbandId, wifeId);
+
+        emit TokenBreed(husbandId, wifeId, tokenId);
 
         return tokenId;
     }
@@ -42,12 +46,12 @@ contract Breeding is TokenBase{
     }
 
     function _canBreed(uint256 tokenId) internal view returns(bool) {
-        return breedInfo[tokenId].releaseTime < block.timestamp;
+        return breedData[tokenId].releaseTime < block.timestamp;
     }
 
-    function _updateBreedInfo(uint256 tokenId) internal {
-        breedInfo[tokenId].count++;
-        breedInfo[tokenId].releaseTime = block.timestamp + 3 days;
+    function _updateBreedData(uint256 tokenId) internal {
+        breedData[tokenId].count++;
+        breedData[tokenId].releaseTime = block.timestamp + 3 days;
     }
 
     function _createChildToken(string calldata tokenType, uint256 husbandId, uint256 wifeId) internal returns(uint256){
@@ -55,13 +59,13 @@ contract Breeding is TokenBase{
          Token storage wife = tokens[wifeId];
 
          uint256 parentGen = (husband.generation > wife.generation) ? husband.generation : wife.generation;
-         uint256 tokenId = mintToken(tokenType, husbandId, wifeId, parentGen + 1, msg.sender);
+         uint256 tokenId = mintToken(tokenType, husbandId, wifeId, parentGen + 1, msg.sender, false);
 
          return tokenId;
     }
 
-    function getBreedInfo(uint256 tokenId) external view returns(uint256 releaseTime, uint256 count) {
-        releaseTime = breedInfo[tokenId].releaseTime;
-        count = breedInfo[tokenId].count;
+    function getbreedData(uint256 tokenId) external view returns(uint256 releaseTime, uint256 count) {
+        releaseTime = breedData[tokenId].releaseTime;
+        count = breedData[tokenId].count;
     }
 }

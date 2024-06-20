@@ -1,0 +1,117 @@
+{
+	"compiler": {
+		"version": "0.8.26+commit.8a97fa7a"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_tokenContract",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "_questContract",
+						"type": "address"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "constructor"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "explore",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "questContract",
+				"outputs": [
+					{
+						"internalType": "contract IQuest",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "tokenContract",
+				"outputs": [
+					{
+						"internalType": "contract IToken",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contents/Exploration.sol": "Exploration"
+		},
+		"evmVersion": "cancun",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"Interfaces/IQuest.sol": {
+			"keccak256": "0x2bec7491cb1146ec2de12962e050095e5b98e2f6218e0a917d8406c3eadad9b1",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://a81321f729b6b7b81d0953fce91e01c12bdd4359b1d67cfda7489a0e9b04ebf5",
+				"dweb:/ipfs/Qme8dTd2ryK2yEsdSTAkWEDyWchujepdSssFTHrqW9tEMZ"
+			]
+		},
+		"Interfaces/IToken.sol": {
+			"keccak256": "0xf79de628089537fe8c7823fa3fedacced1bb0d8bbe0c7194a079f4595efd6396",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://115e43c84a2efbe443b8b5e1e0433cd77939dcab1e63c830446b78dc32036bda",
+				"dweb:/ipfs/Qma1bgFeCVEPUVNe1EZbrGUbc62AHsvqJn7VhxrL2tCegQ"
+			]
+		},
+		"contents/Exploration.sol": {
+			"keccak256": "0xccfca5c3aef4e0baa785d49889a3b0f3233adb3afc4ec122b1a0d90fd27200b0",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://1bcb76821a264aad419f8f48ba537b36ba79326b173d9c5c0ab78a75444628e7",
+				"dweb:/ipfs/QmVx7FZU6XZ4j9VYg1ZDjdpDyCHNFbnDHGVAQZNw5TZ57c"
+			]
+		}
+	},
+	"version": 1
+}

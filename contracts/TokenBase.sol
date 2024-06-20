@@ -8,7 +8,7 @@ import "hardhat/console.sol";
 
 contract TokenBase is ERC721, ERC721URIStorage, Ownable {
     enum GrowthStage{Egg, Hatch, Hatchling, Adult}
-    mapping(uint256=>GrowthStage) private growthStages;
+    
 
     struct Token {
         string tokenType;
@@ -16,6 +16,7 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
         uint256 husbandId;
         uint256 wifeId;
         uint256 generation;
+        bool isPremium;
         uint256 birth;
     }
 
@@ -26,8 +27,10 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
     }
 
     mapping(uint256 => Token) internal tokens;
+    mapping(uint256=>GrowthStage) private growthStages;
     mapping(uint256 => GrowthTime) internal growthTime;
     mapping(address => uint256[]) internal userTokens;
+
     uint256 internal newTokenId;
     uint256 private randNonce;
 
@@ -36,8 +39,13 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
     string public metaDescription;
     string private imageExtension;
 
+    event TokenMinted(address indexed owner, uint256 indexed tokenId);
+    event TokenEvolved(uint256 indexed tokenId, string newStage);
+    event TokenFeed(uint256 indexed tokenId, uint256 indexed newTime);
+
     constructor(address initialOwner,string memory name, string memory symbol) ERC721(name,symbol) Ownable(initialOwner) {
         randNonce = 0;
+        newTokenId = 0;
     }
 
     function evolve(uint256 tokenId) external {
@@ -49,11 +57,14 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
             growthStages[tokenId] = GrowthStage.Hatch;
             tokens[tokenId].gender = getRandomGender();
             growthTime[tokenId].hatchling = currentTime + 2 days;
+            emit TokenEvolved(tokenId, "Hatch");
         } else if(currentStage == GrowthStage.Hatch && currentTime >= growthTime[tokenId].hatchling) {
             growthStages[tokenId] = GrowthStage.Hatchling;
             growthTime[tokenId].adult = currentTime + 3 days;
+            emit TokenEvolved(tokenId, "Hatchling");
         } else if(currentStage == GrowthStage.Hatchling && currentTime >= growthTime[tokenId].adult) {
             growthStages[tokenId] = GrowthStage.Adult;
+            emit TokenEvolved(tokenId, "Adult");
         } else {
             revert( "Unable to evolve");
         }
@@ -74,6 +85,7 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
         } else {
             revert("Invalid growth stage");
         }
+        emit TokenFeed(tokenId, currentTime);
     }
 
     function reduceTimeIfPossible( uint256 currentTime,uint256 growthEndTime, uint256 reduction) internal pure returns(uint256){
@@ -98,7 +110,7 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
 
     }
 
-    function mintToken(string calldata _tokenType, uint256 _husbandId, uint256 _wifeId, uint256 _generation, address _owner) internal returns(uint256) {
+    function mintToken(string calldata _tokenType, uint256 _husbandId, uint256 _wifeId, uint256 _generation,address _owner, bool _isPremium) internal returns(uint256) {
         uint256 tokenId = ++newTokenId;
         tokens[tokenId] = Token({
             tokenType: _tokenType,
@@ -106,6 +118,7 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
             husbandId: _husbandId,
             wifeId: _wifeId,
             generation: _generation,
+            isPremium: _isPremium,
             birth: block.timestamp
         });
 
@@ -115,8 +128,11 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
         _safeMint(_owner, tokenId);
         userTokens[_owner].push(tokenId);
 
+        emit TokenMinted(_owner, tokenId);
+
         return tokenId;
     }
+
 
     function forceEvolve(uint256 tokenId) external onlyOwner {
         GrowthStage currentStage = growthStages[tokenId];
@@ -155,14 +171,27 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
         imageExtension = _imgEx;
     }
 
+    // function getElementToken(string memory tokenType) internal pure returns(string memory ){
+    //     if(keccak256(abi.encodePacked(tokenType)) == keccak256(abi.encodePacked("angelcat"))) {
+    //         return "Light";
+    //     } else if(keccak256(abi.encodePacked(tokenType)) == keccak256(abi.encodePacked("firetail"))) {
+    //         return "Fire";
+    //     } else if(keccak256(abi.encodePacked(tokenType)) == keccak256(abi.encodePacked("egg"))) {
+    //         return "Earth";
+    //     } else if(keccak256(abi.encodePacked(tokenType)) == keccak256(abi.encodePacked("marino"))) {
+    //         return "Water";
+    //     } else if(keccak256(abi.encodePacked(tokenType)) == keccak256(abi.encodePacked("lunera"))) {
+    //         return "Dark";
+    //     }
+    //     return "null";
+    // }
+
     function tokenURI(uint256 tokenId)
         public
         view
         override(ERC721,ERC721URIStorage)
         returns (string memory)
     {
-        
-        
         if(bytes(baseTokenURI).length > 0) {
             return string(abi.encodePacked(baseTokenURI, Strings.toString(tokenId)));
         } else {
@@ -171,7 +200,12 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
             if(growthStages[tokenId] == GrowthStage.Egg) {
                 image = string(abi.encodePacked(tokens[tokenId].tokenType,"_egg"));  
             } else {
-                string memory gen = tokens[tokenId].generation == 1 ? "g" : "b";
+                string memory gen;
+                if(tokens[tokenId].isPremium) {
+                    gen = tokens[tokenId].generation == 1 ? "g" : "b";
+                } else {
+                    gen = "n";
+                }
                 string memory gender = tokens[tokenId].gender == 1 ? "m" : "f";
                 string memory stage;
 
@@ -185,6 +219,8 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
 
                 image = string(abi.encodePacked(tokens[tokenId].tokenType,"_",gen, "_", gender, "_", stage));
             }
+
+            //string memory element = getElementToken(tokens[tokenId].tokenType);
 
             return string(abi.encodePacked(
                 "data:application/json;utf8,{\"name\": \"Dragon #",
