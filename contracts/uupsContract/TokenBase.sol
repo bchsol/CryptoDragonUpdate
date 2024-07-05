@@ -5,18 +5,12 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
+import "hardhat/console.sol";
+import "./TokenTypeManager.sol";
 
-/*
-    1. setDataURI : image base uri
-    2. setImageExtension : .webp, .png ...
-    3. setMetaDescription : "Token description"
-
- */
-contract TokenBase is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradeable, OwnableUpgradeable, UUPSUpgradeable {
+contract TokenBase is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradeable, OwnableUpgradeable {
     enum GrowthStage{Egg, Hatch, Hatchling, Adult}
-    mapping(uint256=>GrowthStage) private growthStages;
+    
 
     struct Token {
         string tokenType;
@@ -24,6 +18,7 @@ contract TokenBase is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradea
         uint256 husbandId;
         uint256 wifeId;
         uint256 generation;
+        bool isPremium;
         uint256 birth;
     }
 
@@ -34,111 +29,119 @@ contract TokenBase is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradea
     }
 
     mapping(uint256 => Token) internal tokens;
+    mapping(uint256=>GrowthStage) private growthStages;
     mapping(uint256 => GrowthTime) internal growthTime;
     mapping(address => uint256[]) internal userTokens;
+
     uint256 internal newTokenId;
     uint256 private randNonce;
-    
+
     string public baseTokenURI;
     string public dataURI;
     string public metaDescription;
-
     string private imageExtension;
 
-    constructor() {
-        _disableInitializers();
-    }
+    TokenTypeManager private tokenTypeManager;
 
-    function initialize(address initialOwner, string memory name, string memory symbol) initializer public {
+    event TokenMinted(address indexed owner, uint256 indexed tokenId);
+    event TokenEvolved(uint256 indexed tokenId, string newStage);
+    event TokenFeed(uint256 indexed tokenId, uint256 indexed newTime);
+
+    function initialize(address initialOwner, address _tokenTypeManager, string memory name, string memory symbol) public virtual initializer {
         __ERC721_init(name, symbol);
         __ERC721URIStorage_init();
         __Ownable_init(initialOwner);
-        __UUPSUpgradeable_init();
+
         randNonce = 0;
+        newTokenId = 0;
+        tokenTypeManager = TokenTypeManager(_tokenTypeManager);
     }
 
     function evolve(uint256 tokenId) external {
         require(ownerOf(tokenId) == msg.sender, "Not owner");
         GrowthStage currentStage = growthStages[tokenId];
+        uint256 currentTime = block.timestamp;
 
-        if(currentStage == GrowthStage.Egg && block.timestamp >= growthTime[tokenId].hatch) {
+        if(currentStage == GrowthStage.Egg && currentTime >= growthTime[tokenId].hatch) {
             growthStages[tokenId] = GrowthStage.Hatch;
             tokens[tokenId].gender = getRandomGender();
-            growthTime[tokenId].hatchling = block.timestamp + 2 days;
-        } else if(currentStage == GrowthStage.Hatch && block.timestamp >= growthTime[tokenId].hatchling) {
+            growthTime[tokenId].hatchling = currentTime + 2 days;
+            emit TokenEvolved(tokenId, "Hatch");
+        } else if(currentStage == GrowthStage.Hatch && currentTime >= growthTime[tokenId].hatchling) {
             growthStages[tokenId] = GrowthStage.Hatchling;
-            growthTime[tokenId].adult = block.timestamp + 3 days;
-            
-        } else if(currentStage == GrowthStage.Hatchling && block.timestamp >= growthTime[tokenId].adult) {
+            growthTime[tokenId].adult = currentTime + 3 days;
+            emit TokenEvolved(tokenId, "Hatchling");
+        } else if(currentStage == GrowthStage.Hatchling && currentTime >= growthTime[tokenId].adult) {
             growthStages[tokenId] = GrowthStage.Adult;
-            
+            emit TokenEvolved(tokenId, "Adult");
         } else {
-            require(false, "Unable to evolve");
+            revert( "Unable to evolve");
         }
     }
     
     function feeding(uint256 tokenId) external {
-        require(growthStages[tokenId] != GrowthStage.Adult, "Token is already adult");
         require(ownerOf(tokenId) == msg.sender, "Not owner");
         GrowthStage currentStage = growthStages[tokenId];
         GrowthTime storage time = growthTime[tokenId];
         uint256 currentTime = block.timestamp;
 
         if (currentStage == GrowthStage.Egg) {
-            time.hatch = reduceTimeIfPossible(currentTime, growthTime[tokenId].hatch, 3 hours);
+            time.hatch = reduceTimeIfPossible(currentTime, time.hatch, 3 hours);
         } else if (currentStage == GrowthStage.Hatch) {
-            time.hatchling = reduceTimeIfPossible(currentTime, growthTime[tokenId].hatchling, 3 hours);
+            time.hatchling = reduceTimeIfPossible(currentTime, time.hatchling, 3 hours);
         } else if (currentStage == GrowthStage.Hatchling) {
-            time.adult = reduceTimeIfPossible(currentTime, growthTime[tokenId].adult, 3 hours);
+            time.adult = reduceTimeIfPossible(currentTime, time.adult, 3 hours);
+        } else {
+            revert("Invalid growth stage");
         }
+        emit TokenFeed(tokenId, currentTime);
     }
 
     function reduceTimeIfPossible( uint256 currentTime,uint256 growthEndTime, uint256 reduction) internal pure returns(uint256){
-        if(growthEndTime - currentTime >= reduction) {
-            return (growthEndTime - reduction);
-        }else {
-            return 0;
-        }
+        return (growthEndTime > currentTime + reduction) ? (growthEndTime - reduction) : currentTime;
     }
 
     function getGrowthInfo(uint256 tokenId) external view returns(GrowthStage currentStage, uint256 timeRemaining) {
         currentStage = growthStages[tokenId];
         uint256 currentTime = block.timestamp;
+        uint256 endTime;
 
-        if(currentStage == GrowthStage.Egg && growthTime[tokenId].hatch > currentTime) {
-            timeRemaining = growthTime[tokenId].hatch - currentTime;
-        } else if(currentStage == GrowthStage.Hatch && growthTime[tokenId].hatchling > currentTime) {
-            timeRemaining = growthTime[tokenId].hatchling - currentTime;
-        } else if(currentStage == GrowthStage.Hatchling && growthTime[tokenId].adult > currentTime) {
-            timeRemaining = growthTime[tokenId].adult - currentTime;
+        if(currentStage == GrowthStage.Egg) {
+            endTime = growthTime[tokenId].hatch;
+        } else if(currentStage == GrowthStage.Hatch) {
+            endTime = growthTime[tokenId].hatchling;
+        } else if(currentStage == GrowthStage.Hatchling) {
+            endTime = growthTime[tokenId].adult;
         } else {
-            timeRemaining = 0;
+            endTime = 0;
         }
+        timeRemaining = (endTime > currentTime) ? (endTime - currentTime) : 0;
 
     }
 
-    function mintToken(string memory _tokenType, uint256 _husbandId, uint256 _wifeId, uint256 _generation, address _owner) internal returns(uint256) {
-        Token memory token = Token({
+    function mintToken(string calldata _tokenType, uint256 _husbandId, uint256 _wifeId, uint256 _generation,address _owner, bool _isPremium) internal returns(uint256) {
+        uint256 tokenId = ++newTokenId;
+        tokens[tokenId] = Token({
             tokenType: _tokenType,
-            gender: 0,
+            gender:0,
             husbandId: _husbandId,
             wifeId: _wifeId,
             generation: _generation,
+            isPremium: _isPremium,
             birth: block.timestamp
         });
-        newTokenId++;
-        tokens[newTokenId] = token;
 
-        growthTime[newTokenId].hatch = token.birth + 2 days;
+        growthTime[tokenId].hatch = block.timestamp + 2 days;
+        growthStages[tokenId] = GrowthStage.Egg;
 
-        growthStages[newTokenId] = GrowthStage.Egg;
+        _safeMint(_owner, tokenId);
+        userTokens[_owner].push(tokenId);
 
-        _safeMint(_owner, newTokenId);
+        emit TokenMinted(_owner, tokenId);
 
-        userTokens[_owner].push(newTokenId);
-
-        return newTokenId;
+        return tokenId;
     }
+
 
     function forceEvolve(uint256 tokenId) external onlyOwner {
         GrowthStage currentStage = growthStages[tokenId];
@@ -152,7 +155,7 @@ contract TokenBase is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradea
         } else if(currentStage == GrowthStage.Hatchling) {
             growthStages[tokenId] = GrowthStage.Adult;
         } else {
-            require(false, "Unable to evolve");
+            revert("Unable to evolve");
         }
     }
 
@@ -161,68 +164,71 @@ contract TokenBase is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradea
         return uint(keccak256(abi.encodePacked(block.timestamp,msg.sender,randNonce))) % 2 + 1;
     }
 
-    function setDataURI(string memory _dataURI) public onlyOwner {
+    function setDataURI(string calldata _dataURI) public onlyOwner {
         dataURI = _dataURI;
     }
 
-    function setTokenURI(string memory _tokenURI) public onlyOwner {
+    function setTokenURI(string calldata _tokenURI) public onlyOwner {
         baseTokenURI = _tokenURI;
     }
 
-    function setMetaDescription(string memory _metaDec) public onlyOwner {
+    function setMetaDescription(string calldata _metaDec) public onlyOwner {
         metaDescription = _metaDec;
     }
 
-    function setImageExtension(string memory _imgEx) public onlyOwner {
+    function setImageExtension(string calldata _imgEx) public onlyOwner {
         imageExtension = _imgEx;
     }
+
 
     function tokenURI(uint256 tokenId)
         public
         view
-        override(ERC721Upgradeable,ERC721URIStorageUpgradeable)
+        override(ERC721Upgradeable, ERC721URIStorageUpgradeable)
         returns (string memory)
     {
-        string memory image;
-        
-
         if(bytes(baseTokenURI).length > 0) {
-            return string.concat(baseTokenURI, Strings.toString(tokenId));
+            return string(abi.encodePacked(baseTokenURI, Strings.toString(tokenId)));
         } else {
+            string memory image;
+
             if(growthStages[tokenId] == GrowthStage.Egg) {
                 image = string(abi.encodePacked(tokens[tokenId].tokenType,"_egg"));  
             } else {
-                string memory gen = tokens[tokenId].generation == 1 ? "g" : "b";
+                string memory gen;
+                if(tokens[tokenId].isPremium) {
+                    gen = tokens[tokenId].generation == 1 ? "g" : "b";
+                } else {
+                    gen = "n";
+                }
                 string memory gender = tokens[tokenId].gender == 1 ? "m" : "f";
                 string memory stage;
 
-                GrowthStage currentStage = growthStages[tokenId];
-                if(currentStage == GrowthStage.Hatch) {
+                if(growthStages[tokenId] == GrowthStage.Hatch) {
                     stage = "hatch";
-                } else if(currentStage == GrowthStage.Hatchling) {
+                } else if(growthStages[tokenId] == GrowthStage.Hatchling) {
                     stage = "hatchling";
-                } else if(currentStage == GrowthStage.Adult){
+                } else if(growthStages[tokenId] == GrowthStage.Adult){
                     stage = "adult";
                 }
 
                 image = string(abi.encodePacked(tokens[tokenId].tokenType,"_",gen, "_", gender, "_", stage));
             }
-            
-            string memory jsonPreImage = string(
-            abi.encodePacked(
-                '{"name": "Dragon #',
-                Strings.toString(tokenId),
-                '","external_url":"https://github.com/bchsol/CryptoDragon","image":"',
-                dataURI,
-                string.concat(image,imageExtension)
-            )
-            );
-            string memory nftMetaProperty = string(abi.encodePacked('","attributes":[{"trait_type":"Dragon","value":"', tokens[tokenId].tokenType));
-            string memory jsonPostTraits = '"}]}';
 
-            return string(abi.encodePacked("data:application/json;utf8,", jsonPreImage, nftMetaProperty, jsonPostTraits));
+            //string memory element = getElementToken(tokens[tokenId].tokenType);
+
+            return string(abi.encodePacked(
+                "data:application/json;utf8,{\"name\": \"Dragon #",
+                Strings.toString(tokenId),
+                "\",\"external_url\":\"https://github.com/bchsol/CryptoDragon\",\"image\":\"",
+                dataURI,
+                image,
+                imageExtension,
+                "\",\"attributes\":[{\"trait_type\":\"Dragon\",\"value\":\"",
+                tokens[tokenId].tokenType,
+                "\"}]}"
+            ));
         }
-        
     }
     
     function supportsInterface(bytes4 interfaceId)
@@ -233,10 +239,4 @@ contract TokenBase is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradea
     {
         return super.supportsInterface(interfaceId);
     }
-
-    function _authorizeUpgrade(address newImplementation)
-        internal
-        onlyOwner
-        override
-    {}
 }

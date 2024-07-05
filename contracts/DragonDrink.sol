@@ -2,31 +2,40 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract DragonDrink is ERC20,Ownable {
-    address public questContract;
-    address public dailyCheckContract;
+contract DragonDrink is ERC20, Ownable {
+    mapping(address => bool) private allowedAddresses;
 
-    constructor(address initialOwner) ERC20("DragonDrink", "DDK") Ownable(initialOwner){
+    event MintTokens(address indexed to, uint256 amount);
 
+    constructor() ERC20("DragonDrink", "DDK") Ownable(msg.sender){
+        
     }
 
-    function setQuestContract(address _questContract) external onlyOwner {
-        questContract = _questContract;
+    function setAllowedAddress(address addr, bool allowed) external onlyOwner {
+        allowedAddresses[addr] = allowed;
     }
 
-    function setDailyCheckContract(address _dailyCheckContract) external onlyOwner {
-        dailyCheckContract = _dailyCheckContract;
+    function isAllowedAddress(address addr) public view returns(bool) {
+        return allowedAddresses[addr];
     }
 
     function mint(address to, uint256 amount) external {
-        require(msg.sender == questContract || msg.sender == dailyCheckContract, "Only the quest contract can mint tokens");
+        require(isAllowedAddress(msg.sender), "Only the auth contract can mint tokens");
         _mint(to, amount * (10**decimals()));
+
+        emit MintTokens(to, amount);
     }
 
-    function burn(uint256 amount) external {
-        _burn(msg.sender, amount);
+    function AdminMint(uint256 amount) external onlyOwner {
+        _mint(msg.sender, amount * (10**decimals()));
+    }
+
+    function burn(address to, uint256 amount) external {
+        require(isAllowedAddress(msg.sender) , "Only the auth contract can mint tokens");
+        _burn(to,amount * (10**decimals()));
     }
 
     // Override the transfer functions to disable transfers
@@ -35,6 +44,8 @@ contract DragonDrink is ERC20,Ownable {
     }
 
     function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool) {
-        revert("Transfers are disabled");
+        require(isAllowedAddress(msg.sender), "This address is not allowed.");
+        super.transferFrom(sender, recipient, amount);
     }
+
 }

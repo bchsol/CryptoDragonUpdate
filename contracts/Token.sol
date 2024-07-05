@@ -9,7 +9,7 @@ contract Token is Breeding {
 
     bool public premiumMintEnabled;
 
-    constructor(address initialOwner, string memory name, string memory symbol) Breeding(initialOwner,name,symbol) {
+    constructor(address initialOwner, address _tokenTypeManager,string memory name, string memory symbol) Breeding(initialOwner,_tokenTypeManager, name,symbol) {
 
     }
 

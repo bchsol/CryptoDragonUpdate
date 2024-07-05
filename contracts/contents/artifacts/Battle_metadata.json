@@ -112,25 +112,6 @@
 				"type": "function"
 			},
 			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "",
-						"type": "address"
-					}
-				],
-				"name": "dailyBattleCount",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
 				"inputs": [],
 				"name": "dailyBattleLimit",
 				"outputs": [
@@ -187,21 +168,53 @@
 				"name": "getBattleRecord",
 				"outputs": [
 					{
+						"internalType": "uint256",
+						"name": "win",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "lose",
+						"type": "uint256"
+					},
+					{
 						"components": [
 							{
-								"internalType": "uint256",
-								"name": "win",
-								"type": "uint256"
+								"components": [
+									{
+										"internalType": "uint256",
+										"name": "tokenId",
+										"type": "uint256"
+									},
+									{
+										"internalType": "uint256",
+										"name": "attack",
+										"type": "uint256"
+									},
+									{
+										"internalType": "uint256",
+										"name": "defense",
+										"type": "uint256"
+									},
+									{
+										"internalType": "uint256",
+										"name": "health",
+										"type": "uint256"
+									}
+								],
+								"internalType": "struct Battle.Dragon",
+								"name": "dragon",
+								"type": "tuple"
 							},
 							{
-								"internalType": "uint256",
-								"name": "lose",
-								"type": "uint256"
+								"internalType": "bool",
+								"name": "winStatus",
+								"type": "bool"
 							}
 						],
-						"internalType": "struct Battle.BattleRecord",
-						"name": "",
-						"type": "tuple"
+						"internalType": "struct Battle.OpponentRecord[]",
+						"name": "opponents",
+						"type": "tuple[]"
 					}
 				],
 				"stateMutability": "view",
@@ -269,30 +282,50 @@
 								"internalType": "uint256",
 								"name": "lose",
 								"type": "uint256"
+							},
+							{
+								"components": [
+									{
+										"components": [
+											{
+												"internalType": "uint256",
+												"name": "tokenId",
+												"type": "uint256"
+											},
+											{
+												"internalType": "uint256",
+												"name": "attack",
+												"type": "uint256"
+											},
+											{
+												"internalType": "uint256",
+												"name": "defense",
+												"type": "uint256"
+											},
+											{
+												"internalType": "uint256",
+												"name": "health",
+												"type": "uint256"
+											}
+										],
+										"internalType": "struct Battle.Dragon",
+										"name": "dragon",
+										"type": "tuple"
+									},
+									{
+										"internalType": "bool",
+										"name": "winStatus",
+										"type": "bool"
+									}
+								],
+								"internalType": "struct Battle.OpponentRecord[]",
+								"name": "opponents",
+								"type": "tuple[]"
 							}
 						],
 						"internalType": "struct Battle.BattleRecord",
 						"name": "",
 						"type": "tuple"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "",
-						"type": "address"
-					}
-				],
-				"name": "lastBattleTime",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
 					}
 				],
 				"stateMutability": "view",
@@ -355,19 +388,6 @@
 				"name": "setDailyBattleLimit",
 				"outputs": [],
 				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "today",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -489,19 +509,19 @@
 			]
 		},
 		"Interfaces/IDragonDrink.sol": {
-			"keccak256": "0x8585e6c7ccdcd9f2584cd111998261c349a3eefa6e19c4735530dc141c63a3da",
+			"keccak256": "0x90e7d8a62d3cac047f5b15feae03ba04b8a26f283b4d35ee2cc8cdb3b6daf9cb",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://f509d1ba9d7eada2dc283b62c545c190f5b501b6e4e6d427e31ae29ae7a59b57",
-				"dweb:/ipfs/QmZPyF29WiY4F1bkrsYw2Ab7gyDf2ajuK7fkKL5ZWtDBpr"
+				"bzz-raw://bdec538ea431df0b6504ecbb38a5b7cb6e4f2e402d48fa84d593bb5fb1fa13cb",
+				"dweb:/ipfs/QmezsmBbD1D1zZ9agK7a8rRFfiHGsxso2bcNHKpgdPwWQA"
 			]
 		},
 		"Interfaces/IQuest.sol": {
-			"keccak256": "0x4594dd15fb4b9dcd26480ef9ac3988541a9e4316bad7df4c0f70c95ff4fbfcb6",
+			"keccak256": "0x97aed74c5594f7c811a968cb910e0e24ea8c9bae816f895e4f89add7e26cafb3",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://8970e85147fa8e8eb8fed87490d4b382854e8672f6cedc783082d6a41d2c932a",
-				"dweb:/ipfs/QmSN9S9qQ7sJQRCaHhZvhJqujx1affidwQ6MVSsBABrttj"
+				"bzz-raw://1b606045d05badd1c687a9b8ad434e9dbf00571164df1139688dc43921f5bf94",
+				"dweb:/ipfs/QmRpTUXFfstiQYpC4QRMnA8y1xDMExXW7vFDZEyXiX8cz8"
 			]
 		},
 		"Interfaces/IToken.sol": {
@@ -513,11 +533,11 @@
 			]
 		},
 		"contents/Battle.sol": {
-			"keccak256": "0x00c0facee7c8556d1ad73035ee121d8b26e1f0b7afa580518e2afaada8a4137d",
+			"keccak256": "0xb4cc4f12cea09ab4641e1c072edc474d216bea06af9c314e821b861bd2848f9c",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://fe61c48ba403b7c475cf207bc82d3750c94d9564b3a2f3b62143e6e3fe3dc4c8",
-				"dweb:/ipfs/QmdU7mKtR65NyMN72EWw8VgrbuqzGteSnSnNjR5W5Dos2a"
+				"bzz-raw://58d0de426defd621f52c49a085d79280d4004d0e61949f574d0a5d5fca13e059",
+				"dweb:/ipfs/QmcDZXZ5qwwdNpXwxYp2pBzscD79RY6hsWWVtqqPdxCAB1"
 			]
 		}
 	},

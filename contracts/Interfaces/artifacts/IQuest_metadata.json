@@ -58,29 +58,31 @@
 						"type": "address"
 					}
 				],
-				"name": "getQuestData",
+				"name": "getBattleCompleted",
 				"outputs": [
 					{
-						"components": [
-							{
-								"internalType": "bool",
-								"name": "dailyCheck",
-								"type": "bool"
-							},
-							{
-								"internalType": "bool",
-								"name": "exploration",
-								"type": "bool"
-							},
-							{
-								"internalType": "bool",
-								"name": "battle",
-								"type": "bool"
-							}
-						],
-						"internalType": "struct IQuest.QuestData",
+						"internalType": "bool",
 						"name": "",
-						"type": "tuple"
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "user",
+						"type": "address"
+					}
+				],
+				"name": "getExploreCompleted",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
 					}
 				],
 				"stateMutability": "view",
@@ -115,11 +117,11 @@
 	},
 	"sources": {
 		"Interfaces/IQuest.sol": {
-			"keccak256": "0x4594dd15fb4b9dcd26480ef9ac3988541a9e4316bad7df4c0f70c95ff4fbfcb6",
+			"keccak256": "0x97aed74c5594f7c811a968cb910e0e24ea8c9bae816f895e4f89add7e26cafb3",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://8970e85147fa8e8eb8fed87490d4b382854e8672f6cedc783082d6a41d2c932a",
-				"dweb:/ipfs/QmSN9S9qQ7sJQRCaHhZvhJqujx1affidwQ6MVSsBABrttj"
+				"bzz-raw://1b606045d05badd1c687a9b8ad434e9dbf00571164df1139688dc43921f5bf94",
+				"dweb:/ipfs/QmRpTUXFfstiQYpC4QRMnA8y1xDMExXW7vFDZEyXiX8cz8"
 			]
 		}
 	},

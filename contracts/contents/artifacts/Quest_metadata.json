@@ -63,25 +63,6 @@
 				"type": "event"
 			},
 			{
-				"anonymous": false,
-				"inputs": [
-					{
-						"indexed": true,
-						"internalType": "address",
-						"name": "user",
-						"type": "address"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "amount",
-						"type": "uint256"
-					}
-				],
-				"name": "TokensMinted",
-				"type": "event"
-			},
-			{
 				"inputs": [
 					{
 						"internalType": "address",
@@ -115,38 +96,6 @@
 						"internalType": "uint256",
 						"name": "",
 						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "user",
-						"type": "address"
-					}
-				],
-				"name": "dailyCheck",
-				"outputs": [
-					{
-						"internalType": "bool",
-						"name": "",
-						"type": "bool"
-					}
-				],
-				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "dailyCheckContract",
-				"outputs": [
-					{
-						"internalType": "address",
-						"name": "",
-						"type": "address"
 					}
 				],
 				"stateMutability": "view",
@@ -212,29 +161,12 @@
 						"type": "address"
 					}
 				],
-				"name": "getQuestData",
+				"name": "getBattleCompleted",
 				"outputs": [
 					{
-						"components": [
-							{
-								"internalType": "bool",
-								"name": "dailyCheck",
-								"type": "bool"
-							},
-							{
-								"internalType": "bool",
-								"name": "exploration",
-								"type": "bool"
-							},
-							{
-								"internalType": "bool",
-								"name": "battle",
-								"type": "bool"
-							}
-						],
-						"internalType": "struct Quest.QuestData",
+						"internalType": "bool",
 						"name": "",
-						"type": "tuple"
+						"type": "bool"
 					}
 				],
 				"stateMutability": "view",
@@ -244,54 +176,16 @@
 				"inputs": [
 					{
 						"internalType": "address",
-						"name": "",
+						"name": "user",
 						"type": "address"
 					}
 				],
-				"name": "lastBattleCompletionTime",
+				"name": "getExploreCompleted",
 				"outputs": [
 					{
-						"internalType": "uint256",
+						"internalType": "bool",
 						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "",
-						"type": "address"
-					}
-				],
-				"name": "lastCheckCompletionTime",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "",
-						"type": "address"
-					}
-				],
-				"name": "lastExploreCompletionTime",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
+						"type": "bool"
 					}
 				],
 				"stateMutability": "view",
@@ -318,6 +212,27 @@
 				"type": "function"
 			},
 			{
+				"inputs": [],
+				"name": "requestAllReward",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "requestBattleReward",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "requestExploreReward",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
 				"inputs": [
 					{
 						"internalType": "address",
@@ -334,19 +249,6 @@
 				"inputs": [
 					{
 						"internalType": "address",
-						"name": "_dailyCheckContract",
-						"type": "address"
-					}
-				],
-				"name": "setDailyCheckContract",
-				"outputs": [],
-				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "address",
 						"name": "_exploreContract",
 						"type": "address"
 					}
@@ -354,19 +256,6 @@
 				"name": "setExploreContract",
 				"outputs": [],
 				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "today",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -449,19 +338,19 @@
 			]
 		},
 		"Interfaces/IDragonDrink.sol": {
-			"keccak256": "0x8585e6c7ccdcd9f2584cd111998261c349a3eefa6e19c4735530dc141c63a3da",
+			"keccak256": "0x90e7d8a62d3cac047f5b15feae03ba04b8a26f283b4d35ee2cc8cdb3b6daf9cb",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://f509d1ba9d7eada2dc283b62c545c190f5b501b6e4e6d427e31ae29ae7a59b57",
-				"dweb:/ipfs/QmZPyF29WiY4F1bkrsYw2Ab7gyDf2ajuK7fkKL5ZWtDBpr"
+				"bzz-raw://bdec538ea431df0b6504ecbb38a5b7cb6e4f2e402d48fa84d593bb5fb1fa13cb",
+				"dweb:/ipfs/QmezsmBbD1D1zZ9agK7a8rRFfiHGsxso2bcNHKpgdPwWQA"
 			]
 		},
 		"contents/Quest.sol": {
-			"keccak256": "0x60f405b6b56c5d31c9c61fcd38429c1658ba05e634d4dc5980a32149a94f7922",
+			"keccak256": "0x2b3e872040bcb5f65c1e95e78314c25ea137f7a363b865999771add728744dab",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://57550bbfe7c89197897023d7ae575c69e1e08fbacbe4dff28493ea25c0953240",
-				"dweb:/ipfs/QmeSeKPbBmVRirSCMXR9aMn5Zfz2LtZsMW8a9AfsWEzvvX"
+				"bzz-raw://4379829540717e2c10e055ba5480acbf40757edc928f697f150efd07dac9a094",
+				"dweb:/ipfs/QmSkhrh9efnDFPTaKwkGkAh8u4XJpHxFnMDoLffyatbSg7"
 			]
 		}
 	},

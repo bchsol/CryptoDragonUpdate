@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "hardhat/console.sol";
+import "./TokenTypeManager.sol";
 
 contract TokenBase is ERC721, ERC721URIStorage, Ownable {
     enum GrowthStage{Egg, Hatch, Hatchling, Adult}
@@ -39,13 +39,16 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
     string public metaDescription;
     string private imageExtension;
 
+    TokenTypeManager private tokenTypeManager;
+
     event TokenMinted(address indexed owner, uint256 indexed tokenId);
     event TokenEvolved(uint256 indexed tokenId, string newStage);
     event TokenFeed(uint256 indexed tokenId, uint256 indexed newTime);
 
-    constructor(address initialOwner,string memory name, string memory symbol) ERC721(name,symbol) Ownable(initialOwner) {
+    constructor(address initialOwner,address _tokenTypeManager, string memory name, string memory symbol) ERC721(name,symbol) Ownable(initialOwner) {
         randNonce = 0;
         newTokenId = 0;
+        tokenTypeManager = TokenTypeManager(_tokenTypeManager);
     }
 
     function evolve(uint256 tokenId) external {
@@ -111,6 +114,8 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
     }
 
     function mintToken(string calldata _tokenType, uint256 _husbandId, uint256 _wifeId, uint256 _generation,address _owner, bool _isPremium) internal returns(uint256) {
+        require(tokenTypeManager.isAllowedTokenType(_tokenType), "Invalid token type");
+        
         uint256 tokenId = ++newTokenId;
         tokens[tokenId] = Token({
             tokenType: _tokenType,
@@ -171,21 +176,6 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
         imageExtension = _imgEx;
     }
 
-    // function getElementToken(string memory tokenType) internal pure returns(string memory ){
-    //     if(keccak256(abi.encodePacked(tokenType)) == keccak256(abi.encodePacked("angelcat"))) {
-    //         return "Light";
-    //     } else if(keccak256(abi.encodePacked(tokenType)) == keccak256(abi.encodePacked("firetail"))) {
-    //         return "Fire";
-    //     } else if(keccak256(abi.encodePacked(tokenType)) == keccak256(abi.encodePacked("egg"))) {
-    //         return "Earth";
-    //     } else if(keccak256(abi.encodePacked(tokenType)) == keccak256(abi.encodePacked("marino"))) {
-    //         return "Water";
-    //     } else if(keccak256(abi.encodePacked(tokenType)) == keccak256(abi.encodePacked("lunera"))) {
-    //         return "Dark";
-    //     }
-    //     return "null";
-    // }
-
     function tokenURI(uint256 tokenId)
         public
         view
@@ -219,8 +209,6 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
 
                 image = string(abi.encodePacked(tokens[tokenId].tokenType,"_",gen, "_", gender, "_", stage));
             }
-
-            //string memory element = getElementToken(tokens[tokenId].tokenType);
 
             return string(abi.encodePacked(
                 "data:application/json;utf8,{\"name\": \"Dragon #",

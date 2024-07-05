@@ -14,7 +14,7 @@ contract Breeding is TokenBase{
 
     event TokenBreed(uint256 indexed husbandId, uint256 indexed wifeId, uint256 indexed childId);
 
-    constructor(address initialOwner, string memory name, string memory symbol) TokenBase(initialOwner,name,symbol) {}
+    constructor(address initialOwner, address _tokenTypeManager, string memory name, string memory symbol) TokenBase(initialOwner,_tokenTypeManager,name,symbol) {}
 
     function breed(string calldata tokenType, uint256 husbandId, uint256 wifeId) external returns(uint256){
         require(ownerOf(husbandId) == msg.sender && ownerOf(wifeId) == msg.sender, "Not owner");

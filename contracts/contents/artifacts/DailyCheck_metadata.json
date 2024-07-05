@@ -68,25 +68,6 @@
 				"type": "event"
 			},
 			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "",
-						"type": "address"
-					}
-				],
-				"name": "consecutiveDailyChecks",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
 				"inputs": [],
 				"name": "consecutiveReward",
 				"outputs": [
@@ -141,25 +122,6 @@
 					}
 				],
 				"name": "getConsecutiveDailyChecks",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "",
-						"type": "address"
-					}
-				],
-				"name": "lastConsecutiveCheckTime",
 				"outputs": [
 					{
 						"internalType": "uint256",
@@ -227,19 +189,6 @@
 				"name": "setDailyCheckReward",
 				"outputs": [],
 				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "today",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -322,27 +271,27 @@
 			]
 		},
 		"Interfaces/IDragonDrink.sol": {
-			"keccak256": "0x8585e6c7ccdcd9f2584cd111998261c349a3eefa6e19c4735530dc141c63a3da",
+			"keccak256": "0x90e7d8a62d3cac047f5b15feae03ba04b8a26f283b4d35ee2cc8cdb3b6daf9cb",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://f509d1ba9d7eada2dc283b62c545c190f5b501b6e4e6d427e31ae29ae7a59b57",
-				"dweb:/ipfs/QmZPyF29WiY4F1bkrsYw2Ab7gyDf2ajuK7fkKL5ZWtDBpr"
+				"bzz-raw://bdec538ea431df0b6504ecbb38a5b7cb6e4f2e402d48fa84d593bb5fb1fa13cb",
+				"dweb:/ipfs/QmezsmBbD1D1zZ9agK7a8rRFfiHGsxso2bcNHKpgdPwWQA"
 			]
 		},
 		"Interfaces/IQuest.sol": {
-			"keccak256": "0x2bec7491cb1146ec2de12962e050095e5b98e2f6218e0a917d8406c3eadad9b1",
+			"keccak256": "0x97aed74c5594f7c811a968cb910e0e24ea8c9bae816f895e4f89add7e26cafb3",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://a81321f729b6b7b81d0953fce91e01c12bdd4359b1d67cfda7489a0e9b04ebf5",
-				"dweb:/ipfs/Qme8dTd2ryK2yEsdSTAkWEDyWchujepdSssFTHrqW9tEMZ"
+				"bzz-raw://1b606045d05badd1c687a9b8ad434e9dbf00571164df1139688dc43921f5bf94",
+				"dweb:/ipfs/QmRpTUXFfstiQYpC4QRMnA8y1xDMExXW7vFDZEyXiX8cz8"
 			]
 		},
 		"contents/DailyCheck.sol": {
-			"keccak256": "0xdb9cd58582a784633c540c98bd7e610aa47c884dca4b943fc68907373ec7d3df",
+			"keccak256": "0xc84a1fe9e6e291435748ff93008aa7bbdcbac12bbaa34f0354fe985bdd2c5a81",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://264041fe9e04e1dc04b60594ddf8576d63c58eb8551e6a66ee19d84f326a0d52",
-				"dweb:/ipfs/QmUqApK91sbtMhP3sSeik13WfAFUTzjqxNjVpafpeqkhhX"
+				"bzz-raw://1b2a2f562148213278e334ed205a0d58617feb88465ea1752055b51d25e1db1f",
+				"dweb:/ipfs/QmaoaJQY1YbdTbLh3twAxgGQBeDqAUpYVGkEa1pnxLEEUd"
 			]
 		}
 	},

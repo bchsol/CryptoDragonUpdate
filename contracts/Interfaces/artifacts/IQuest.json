@@ -52,7 +52,8 @@
 			"battleCheck(address)": "dec5d109",
 			"dailyCheck(address)": "a5fd9381",
 			"exploreCheck(address)": "c1b6a1e8",
-			"getQuestData(address)": "86c8a86f"
+			"getBattleCompleted(address)": "2cbae7fa",
+			"getExploreCompleted(address)": "185df706"
 		}
 	},
 	"abi": [
@@ -109,29 +110,31 @@
 					"type": "address"
 				}
 			],
-			"name": "getQuestData",
+			"name": "getBattleCompleted",
 			"outputs": [
 				{
-					"components": [
-						{
-							"internalType": "bool",
-							"name": "dailyCheck",
-							"type": "bool"
-						},
-						{
-							"internalType": "bool",
-							"name": "exploration",
-							"type": "bool"
-						},
-						{
-							"internalType": "bool",
-							"name": "battle",
-							"type": "bool"
-						}
-					],
-					"internalType": "struct IQuest.QuestData",
+					"internalType": "bool",
 					"name": "",
-					"type": "tuple"
+					"type": "bool"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "user",
+					"type": "address"
+				}
+			],
+			"name": "getExploreCompleted",
+			"outputs": [
+				{
+					"internalType": "bool",
+					"name": "",
+					"type": "bool"
 				}
 			],
 			"stateMutability": "view",

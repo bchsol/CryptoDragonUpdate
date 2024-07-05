@@ -10,5 +10,6 @@ interface IQuest {
     function battleCheck(address user) external;
     function exploreCheck(address user) external;
     function dailyCheck(address user) external returns(bool);
-    function getQuestData(address user) external view returns(QuestData memory);
+    function getBattleCompleted(address user) external view returns(bool);
+    function getExploreCompleted(address user) external view returns(bool);
 }

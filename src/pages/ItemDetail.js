@@ -45,8 +45,13 @@ function ItemDetail() {
       <h2>Item Detail</h2>
       <Row>
         <Col md={5}>
-          <Card>
-            <Card.Img variant="top" src={imageUrl} alt={tokenName} />
+          <Card style={{ position: "relative" }}>
+            <Card.Img
+              src={imageUrl}
+              alt={tokenName}
+              style={{ width: "400px", height: "400px" }}
+            />
+
             <Card.Body>
               <Card.Title>{tokenName}</Card.Title>
               <CardFooter>
@@ -90,7 +95,7 @@ function ItemDetail() {
         </Col>
 
         <Col md={6}>
-          <Card>
+          <Card style={{ position: "relative" }}>
             <Card.Body>
               <Card.Title>Sale End</Card.Title>
               <p></p>

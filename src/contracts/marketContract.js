@@ -1,8 +1,19 @@
 const json = {
-  AddressSepolia: "0x873fbc699E6E9314FB6e1c4B39f480fCD1d2DaD9",
+  AddressSepolia: "0x5E30631A8483634856eB6FFb91F6512b440C8792",
   Abi: [
     {
-      inputs: [],
+      inputs: [
+        {
+          internalType: "address",
+          name: "_nftContract",
+          type: "address",
+        },
+        {
+          internalType: "address",
+          name: "_paymentToken",
+          type: "address",
+        },
+      ],
       stateMutability: "nonpayable",
       type: "constructor",
     },
@@ -36,12 +47,6 @@ const json = {
           internalType: "uint256",
           name: "itemId",
           type: "uint256",
-        },
-        {
-          indexed: false,
-          internalType: "address",
-          name: "nftContract",
-          type: "address",
         },
         {
           indexed: false,
@@ -82,12 +87,6 @@ const json = {
         },
         {
           indexed: false,
-          internalType: "address",
-          name: "nftContract",
-          type: "address",
-        },
-        {
-          indexed: false,
           internalType: "uint256",
           name: "tokenId",
           type: "uint256",
@@ -116,12 +115,6 @@ const json = {
           internalType: "uint256",
           name: "itemId",
           type: "uint256",
-        },
-        {
-          indexed: false,
-          internalType: "address",
-          name: "nftContract",
-          type: "address",
         },
         {
           indexed: false,
@@ -189,11 +182,6 @@ const json = {
               type: "uint256",
             },
             {
-              internalType: "address",
-              name: "nftContract",
-              type: "address",
-            },
-            {
               internalType: "uint256",
               name: "tokenId",
               type: "uint256",
@@ -237,11 +225,6 @@ const json = {
               internalType: "uint256",
               name: "itemId",
               type: "uint256",
-            },
-            {
-              internalType: "address",
-              name: "nftContract",
-              type: "address",
             },
             {
               internalType: "uint256",
@@ -289,11 +272,6 @@ const json = {
               type: "uint256",
             },
             {
-              internalType: "address",
-              name: "nftContract",
-              type: "address",
-            },
-            {
               internalType: "uint256",
               name: "tokenId",
               type: "uint256",
@@ -330,11 +308,6 @@ const json = {
     {
       inputs: [
         {
-          internalType: "address",
-          name: "nftContract",
-          type: "address",
-        },
-        {
           internalType: "uint256",
           name: "tokenId",
           type: "uint256",
@@ -365,11 +338,6 @@ const json = {
           internalType: "uint256",
           name: "itemId",
           type: "uint256",
-        },
-        {
-          internalType: "address",
-          name: "nftContract",
-          type: "address",
         },
         {
           internalType: "uint256",
@@ -403,11 +371,6 @@ const json = {
     {
       inputs: [
         {
-          internalType: "address",
-          name: "nftContract",
-          type: "address",
-        },
-        {
           internalType: "uint256",
           name: "tokenId",
           type: "uint256",
@@ -438,10 +401,36 @@ const json = {
     },
     {
       inputs: [],
+      name: "nftContract",
+      outputs: [
+        {
+          internalType: "contract IERC721",
+          name: "",
+          type: "address",
+        },
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
       name: "owner",
       outputs: [
         {
           internalType: "address",
+          name: "",
+          type: "address",
+        },
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "paymentToken",
+      outputs: [
+        {
+          internalType: "contract IERC20",
           name: "",
           type: "address",
         },

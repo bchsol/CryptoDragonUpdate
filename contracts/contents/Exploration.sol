@@ -3,23 +3,54 @@ pragma solidity ^0.8.20;
 
 import "../Interfaces/IToken.sol";
 import "../Interfaces/IQuest.sol";
+import "../Interfaces/IDragonDrink.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Exploration {
+contract Exploration is Ownable{
     IToken public tokenContract;
     IQuest public questContract;
-    constructor(address _tokenContract, address _questContract) {
+    IDragonDrink public drinkContract;
+
+    mapping(address => uint256) private dailyExploreCount;
+    mapping(address => uint256) private lastExploreTime;
+
+    uint256 public dailyExploreLimit = 1;
+    uint256 public minAdultToken = 5;
+
+    constructor(address _tokenContract, address _questContract, address _drinkContract) Ownable(msg.sender){
         tokenContract = IToken(_tokenContract);
         questContract = IQuest(_questContract);
+        drinkContract = IDragonDrink(_drinkContract);
     }
 
-    function explore(address user) external {
+    modifier exploreLimitCheck(address player) {
+        require(dailyExploreCount[player] < dailyExploreLimit, "Daily battle limit reached");
+        _;
+    }
+
+    modifier resetDailyExploreCount(address player) {
+        if (lastExploreTime[player] < today()) {
+            dailyExploreCount[player] = 0;
+        }
+        _;
+    }
+
+    function explore() external resetDailyExploreCount(msg.sender) exploreLimitCheck(msg.sender) {
         require(hasAdultToken(msg.sender), "You must own at least five adult NFT to explore.");
 
-        //uint256 reward = getRandomReward();
+        lastExploreTime[msg.sender] = today();
+        dailyExploreCount[msg.sender]++;
 
-        questContract.exploreCheck(user);
+        bool questData = questContract.getBattleCompleted(msg.sender);
+        if(!questData) {
+            questContract.exploreCheck(msg.sender);
+        }
+        
+        uint256 reward = getRandomReward();
+
+        drinkContract.mint(msg.sender, reward);
     }
-
+    
     function hasAdultToken(address user) internal view returns(bool){
         uint256[] memory tokenIds = tokenContract.getUserNftIds(user);
         uint256 adultCount = 0;
@@ -27,8 +58,8 @@ contract Exploration {
        for (uint256 i = 0; i < tokenIds.length; i++) {
             (IToken.GrowthStage currentStage, ) = tokenContract.getGrowthInfo(tokenIds[i]);
             if (currentStage == IToken.GrowthStage.Adult) {
-                adultCount += 1;
-                if(adultCount >= 5) {
+                adultCount++;
+                if(adultCount >= minAdultToken) {
                     return true;
                 }
             }
@@ -39,12 +70,24 @@ contract Exploration {
     function getRandomReward() internal view returns(uint256) {
         uint256 randomValue = uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao, msg.sender))) % 100;
 
-        if(randomValue < 50) {
-            return 1;
-        } else if(randomValue < 80) {
-            return 2;
+        if(randomValue < 70) {
+            return 100;
+        } else if(randomValue < 95) {
+            return 200;
         } else {
-            return 3;
+            return 300;
         }
+    }
+
+    function setMinAdultToken(uint256 _minAdultToken) external onlyOwner {
+        minAdultToken = _minAdultToken;
+    }
+
+    function setDailyExploreLimit(uint256 limit) external onlyOwner {
+        dailyExploreLimit = limit;
+    }
+
+    function today() internal view returns (uint256) {
+        return block.timestamp / 1 days;
     }
 }

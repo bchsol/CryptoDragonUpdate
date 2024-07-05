@@ -34,6 +34,10 @@ function Heading() {
               <Link to="/market" className="navbar-link">
                 Market
               </Link>
+
+              <Link to="/quest" className="navbar-link">
+                Quest
+              </Link>
             </Nav>
             <Button variant="outline-dark" onClick={() => open()}>
               {!isConnected ? "Connect Wallet" : truncateAccount}

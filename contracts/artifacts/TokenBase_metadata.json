@@ -13,6 +13,11 @@
 						"type": "address"
 					},
 					{
+						"internalType": "address",
+						"name": "_tokenTypeManager",
+						"type": "address"
+					},
+					{
 						"internalType": "string",
 						"name": "name",
 						"type": "string"
@@ -1072,11 +1077,19 @@
 			]
 		},
 		"TokenBase.sol": {
-			"keccak256": "0xb928f734bd29bca996699b18470cd9b645a660a7063a62d3e3f92b189c7f7779",
+			"keccak256": "0x15c52ac998b9fd14b60affbaa2170593cf3e0da79e782dd3f9791f8e2f255f81",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://b3f4cb8d1c9a96a934181cb2375ab99a881b4e03e95a4354e1eb8bd40e9e8cc1",
-				"dweb:/ipfs/QmXowRAue2V7M2kMjY5GV175hRjQGG92Q5QNwgnxGJpXaJ"
+				"bzz-raw://92711ba2eb526f6583db32ba650bc73fd3f982863686139aafa66bdfe66903f9",
+				"dweb:/ipfs/QmXqSQpQ2fpQqXiJ7SkskmiFX1MXkanmUtQ4iJ5QkdppWS"
+			]
+		},
+		"TokenTypeManager.sol": {
+			"keccak256": "0xa4b3d15fbb201e642438cbdfcbe6625451bd379a322c8efa5d9583cb45f745e4",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://4210c9a80cebaeef8a789bc86ab6109d5c3313f6942260bd73d368391aaac353",
+				"dweb:/ipfs/QmRycitTRWHDGP7ckihLbbwGft7Y31wb9hvMoxri6WEWzM"
 			]
 		},
 		"hardhat/console.sol": {

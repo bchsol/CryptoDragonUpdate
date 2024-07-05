@@ -1,5 +1,5 @@
 const json = {
-  AddressSepolia: "0x9c123f0564Dd90648234a698CAc8A2bF51A3b7Ba",
+  AddressSepolia: "0x9A7FC62fc3932484c075a90809D426Ca179ABc82",
   AddressMainNet: "",
   Abi: [
     {
@@ -23,37 +23,13 @@ const json = {
     {
       inputs: [
         {
-          internalType: "string",
-          name: "tokenType",
-          type: "string",
-        },
-        {
-          internalType: "uint256",
-          name: "husbandId",
-          type: "uint256",
-        },
-        {
-          internalType: "uint256",
-          name: "wifeId",
-          type: "uint256",
-        },
-      ],
-      name: "breed",
-      outputs: [
-        {
-          internalType: "uint256",
-          name: "",
-          type: "uint256",
-        },
-      ],
-      stateMutability: "payable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
           internalType: "address",
           name: "initialOwner",
+          type: "address",
+        },
+        {
+          internalType: "address",
+          name: "_tokenTypeManager",
           type: "address",
         },
         {
@@ -176,50 +152,6 @@ const json = {
     {
       inputs: [
         {
-          internalType: "uint256",
-          name: "tokenId",
-          type: "uint256",
-        },
-      ],
-      name: "evolve",
-      outputs: [],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "uint256",
-          name: "tokenId",
-          type: "uint256",
-        },
-      ],
-      name: "feeding",
-      outputs: [],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "owner",
-          type: "address",
-        },
-        {
-          internalType: "string",
-          name: "tokenType",
-          type: "string",
-        },
-      ],
-      name: "genesisMint",
-      outputs: [],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
           internalType: "address",
           name: "owner",
           type: "address",
@@ -311,12 +243,80 @@ const json = {
     {
       inputs: [
         {
+          internalType: "string",
+          name: "tokenType",
+          type: "string",
+        },
+        {
+          internalType: "uint256",
+          name: "husbandId",
+          type: "uint256",
+        },
+        {
+          internalType: "uint256",
+          name: "wifeId",
+          type: "uint256",
+        },
+      ],
+      name: "breed",
+      outputs: [
+        {
+          internalType: "uint256",
+          name: "",
+          type: "uint256",
+        },
+      ],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "uint256",
+          name: "tokenId",
+          type: "uint256",
+        },
+      ],
+      name: "evolve",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "uint256",
+          name: "tokenId",
+          type: "uint256",
+        },
+      ],
+      name: "feeding",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
           internalType: "uint256",
           name: "tokenId",
           type: "uint256",
         },
       ],
       name: "forceEvolve",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "bool",
+          name: "isEnabled",
+          type: "bool",
+        },
+      ],
+      name: "isPremiumOpen",
       outputs: [],
       stateMutability: "nonpayable",
       type: "function",
@@ -333,6 +333,24 @@ const json = {
       ],
       name: "MetadataUpdate",
       type: "event",
+    },
+    {
+      inputs: [
+        {
+          internalType: "address",
+          name: "owner",
+          type: "address",
+        },
+        {
+          internalType: "string",
+          name: "tokenType",
+          type: "string",
+        },
+      ],
+      name: "nomalMint",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
     },
     {
       anonymous: false,
@@ -352,6 +370,24 @@ const json = {
       ],
       name: "OwnershipTransferred",
       type: "event",
+    },
+    {
+      inputs: [
+        {
+          internalType: "address",
+          name: "owner",
+          type: "address",
+        },
+        {
+          internalType: "string",
+          name: "tokenType",
+          type: "string",
+        },
+      ],
+      name: "premiumMint",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
     },
     {
       inputs: [],
@@ -486,6 +522,88 @@ const json = {
       inputs: [
         {
           indexed: true,
+          internalType: "uint256",
+          name: "husbandId",
+          type: "uint256",
+        },
+        {
+          indexed: true,
+          internalType: "uint256",
+          name: "wifeId",
+          type: "uint256",
+        },
+        {
+          indexed: true,
+          internalType: "uint256",
+          name: "childId",
+          type: "uint256",
+        },
+      ],
+      name: "TokenBreed",
+      type: "event",
+    },
+    {
+      anonymous: false,
+      inputs: [
+        {
+          indexed: true,
+          internalType: "uint256",
+          name: "tokenId",
+          type: "uint256",
+        },
+        {
+          indexed: false,
+          internalType: "string",
+          name: "newStage",
+          type: "string",
+        },
+      ],
+      name: "TokenEvolved",
+      type: "event",
+    },
+    {
+      anonymous: false,
+      inputs: [
+        {
+          indexed: true,
+          internalType: "uint256",
+          name: "tokenId",
+          type: "uint256",
+        },
+        {
+          indexed: true,
+          internalType: "uint256",
+          name: "newTime",
+          type: "uint256",
+        },
+      ],
+      name: "TokenFeed",
+      type: "event",
+    },
+    {
+      anonymous: false,
+      inputs: [
+        {
+          indexed: true,
+          internalType: "address",
+          name: "owner",
+          type: "address",
+        },
+        {
+          indexed: true,
+          internalType: "uint256",
+          name: "tokenId",
+          type: "uint256",
+        },
+      ],
+      name: "TokenMinted",
+      type: "event",
+    },
+    {
+      anonymous: false,
+      inputs: [
+        {
+          indexed: true,
           internalType: "address",
           name: "from",
           type: "address",
@@ -588,32 +706,6 @@ const json = {
       type: "function",
     },
     {
-      inputs: [],
-      name: "GENESIS_LIMIT",
-      outputs: [
-        {
-          internalType: "uint256",
-          name: "",
-          type: "uint256",
-        },
-      ],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [],
-      name: "genesisCount",
-      outputs: [
-        {
-          internalType: "uint256",
-          name: "",
-          type: "uint256",
-        },
-      ],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
       inputs: [
         {
           internalType: "uint256",
@@ -640,7 +732,7 @@ const json = {
           type: "uint256",
         },
       ],
-      name: "getBreedInfo",
+      name: "getbreedData",
       outputs: [
         {
           internalType: "uint256",
@@ -782,6 +874,19 @@ const json = {
     },
     {
       inputs: [],
+      name: "mintCount",
+      outputs: [
+        {
+          internalType: "uint256",
+          name: "",
+          type: "uint256",
+        },
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
       name: "name",
       outputs: [
         {
@@ -820,6 +925,19 @@ const json = {
           internalType: "address",
           name: "",
           type: "address",
+        },
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "premiumMintEnabled",
+      outputs: [
+        {
+          internalType: "bool",
+          name: "",
+          type: "bool",
         },
       ],
       stateMutability: "view",

@@ -7,6 +7,7 @@ import Collection from "./pages/Collection";
 import MarketPlace from "./pages/MarketPlace";
 
 import ItemDetail from "./pages/ItemDetail";
+import Quest from "./pages/Quest";
 
 import { createWeb3Modal, defaultConfig } from "@web3modal/ethers/react";
 
@@ -49,6 +50,7 @@ function App() {
         <Route path="/collection" element={<Collection />} />
         <Route path="/market" element={<MarketPlace />} />
         <Route path="/item/:id" element={<ItemDetail />} />
+        <Route path="/Quest" element={<Quest />} />
       </Routes>
     </>
   );

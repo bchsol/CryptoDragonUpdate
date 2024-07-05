@@ -11,11 +11,6 @@ contract Battle is Ownable{
     IQuest public questContract;
     IDragonDrink public drinkContract;
 
-    struct BattleRecord {
-        uint256 win;
-        uint256 lose;
-    }
-
     struct Dragon {
         uint256 tokenId;
         uint256 attack;
@@ -23,11 +18,23 @@ contract Battle is Ownable{
         uint256 health;
     }
 
+    struct BattleRecord {
+        uint256 win;
+        uint256 lose;
+        OpponentRecord[] opponents;
+    }
+
+    struct OpponentRecord {
+        Dragon dragon;
+        bool winStatus;
+    }
+
     mapping(uint256 => Dragon) private battleDragon;
     mapping(uint256 => BattleRecord) private dragonRecords;
     mapping(address => uint256) private registeredDragons;
-    mapping(address => uint256) public dailyBattleCount;
-    mapping(address => uint256) public lastBattleTime;
+    mapping(address => uint256) private dailyBattleCount;
+    mapping(address => uint256) private lastBattleTime;
+
     address[] private registeredBattlers;
 
     address[] private dummyAddr;
@@ -60,22 +67,23 @@ contract Battle is Ownable{
         _;
     }
 
-    function battle(uint256 tokenId) external {
+    function battle(uint256 tokenId) external resetDailyBattleCount(msg.sender) battleLimitCheck(msg.sender)  {
         require(dragonContract.ownerOf(tokenId) == msg.sender, "Not Owner");
 
         address opponent = findRandomOpponent(msg.sender);
         require(opponent != address(0), "No opponent found");
-        
-        IQuest.QuestData memory questData = questContract.getQuestData(msg.sender);
 
-        if(!questData.battle) {
+        dailyBattleCount[msg.sender]++;
+        lastBattleTime[msg.sender] = today();
+        
+        bool questData = questContract.getBattleCompleted(msg.sender);
+        if(!questData) {
             questContract.battleCheck(msg.sender);
         }
         
         battleProgress(msg.sender, opponent);
-        
-        dailyBattleCount[msg.sender]++;
-        lastBattleTime[msg.sender] = block.timestamp;
+
+        winReward(msg.sender);
     }
 
     function battleProgress(address player, address opponent) internal {
@@ -90,7 +98,7 @@ contract Battle is Ownable{
 
         bool playerFirst = (uint256(keccak256(abi.encodePacked(block.timestamp,block.prevrandao))) % 2) == 0;
         
-        while(myHealth > 0 && opponentHealth > 0) {
+        for(uint256 i = 0; i < 10 && myHealth > 0 && opponentHealth > 0; i++) {
             if(playerFirst) {
                 opponentHealth = applyDamage(myDragon.attack, myDragon.defense, myDragon.health);
                 if(opponentHealth == 0) break;
@@ -112,12 +120,34 @@ contract Battle is Ownable{
     }
 
     function updateBattleRecords(uint256 myHealth, uint256 playerTokenId, uint256 opponentTokenId) private {        
+        Dragon storage myDragon = battleDragon[playerTokenId];
+        Dragon storage opponentDragon = battleDragon[opponentTokenId];
+        
         if (myHealth == 0) {
             dragonRecords[opponentTokenId].win++;
+            dragonRecords[opponentTokenId].opponents.push(OpponentRecord({
+                dragon: myDragon,
+                winStatus: true
+            }));
+
             dragonRecords[playerTokenId].lose++;
+            dragonRecords[playerTokenId].opponents.push(OpponentRecord({
+                dragon: opponentDragon,
+                winStatus: false
+            }));
+            
         } else {
             dragonRecords[playerTokenId].win++;
+            dragonRecords[playerTokenId].opponents.push(OpponentRecord({
+                dragon: opponentDragon,
+                winStatus: true
+            }));
+
             dragonRecords[opponentTokenId].lose++;
+            dragonRecords[opponentTokenId].opponents.push(OpponentRecord({
+                dragon: myDragon,
+                winStatus: false
+            }));
         }
     }
 
@@ -130,9 +160,9 @@ contract Battle is Ownable{
         require(registeredDragons[msg.sender] == tokenId, "Dragon not registered for battle");
         require(drinkContract.balanceOf(msg.sender) >= upgradePrice, "Insufficient drinks");
 
-        drinkContract.burn(upgradePrice);
-
         Dragon storage myDragon = battleDragon[tokenId];
+
+        drinkContract.burn(msg.sender, upgradePrice);
 
         uint256 randomStat = uint256(keccak256(abi.encodePacked(block.timestamp,block.prevrandao))) % 3;
 
@@ -190,18 +220,22 @@ contract Battle is Ownable{
 
     function findRandomOpponent(address exclude) internal view returns(address) {
         uint256 registeredCount = registeredBattlers.length;
-        if(registeredCount == 1) {
+        if(registeredCount <= 1) {
             return address(0);
         }
 
-        uint256 randomIndex = uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao))) % registeredCount;
-        address opponent = registeredBattlers[randomIndex];
+        uint256 randomIndex;
+        address opponent;
 
-        if(opponent == exclude) {
-            opponent = registeredBattlers[(randomIndex + 1) % registeredCount];
+        for(uint256 i = 0; i < registeredCount; i++) {
+            randomIndex = uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao, i))) % registeredCount;
+            opponent = registeredBattlers[randomIndex];
+
+            if (opponent != exclude) {
+                return opponent;
+            }
         }
-
-        return opponent;
+        return address(0);
     }
 
     function addDummy(uint256 count) external onlyOwner{
@@ -233,8 +267,9 @@ contract Battle is Ownable{
         return battleDragon[tokenId];
     }
 
-    function getBattleRecord(uint256 tokenId) external view returns(BattleRecord memory) {
-        return dragonRecords[tokenId];
+    function getBattleRecord(uint256 tokenId) external view returns (uint256 win, uint256 lose, OpponentRecord[] memory opponents) {
+        BattleRecord storage record = dragonRecords[tokenId];
+        return (record.win, record.lose, record.opponents);
     }
 
     function getPlayerRecords(address player) external view onlyOwner returns(BattleRecord memory)  {
@@ -246,7 +281,7 @@ contract Battle is Ownable{
         dailyBattleLimit = limit;
     }
 
-    function today() public view returns (uint256) {
+    function today() internal view returns (uint256) {
         return block.timestamp / 1 days;
     }
 }
