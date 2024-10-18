@@ -1,7 +1,22 @@
-node_modules
-angelcat
+client/node_modules
 .deps
-contracts/artifacts
 
-MarketPlace.css
-Collection.css
+/.vscode
+/build
+/db
+
+client/pages/Test.js
+client/src/contracts
+
+truffle/contracts/.deploy
+truffle/contracts/.deps
+truffle/contracts/.states
+truffle/contracts/artifacts
+truffle/contracts/contents/artifacts
+truffle/contracts/interfaces/artifacts
+
+truffle/db
+truffle/migrations
+truffle/node_modules
+truffle/test
+truffle/testContract
