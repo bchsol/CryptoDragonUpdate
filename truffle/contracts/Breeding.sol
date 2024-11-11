@@ -74,7 +74,7 @@ contract Breeding is TokenBase{
          Token storage wife = tokens[wifeId];
 
          uint256 parentGen = (husband.generation > wife.generation) ? husband.generation : wife.generation;
-         uint256 tokenId = mintToken(tokenType, husbandId, wifeId, parentGen + 1, msg.sender, false);
+         uint256 tokenId = mintToken(tokenType, husbandId, wifeId, parentGen + 1, msg.sender, false, "");
 
          return tokenId;
     }

@@ -1,11 +1,16 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract TokenTypeManager is Ownable {
+    enum Element {Fire, Water, Wind, Earth, Steel, Light, Dark}
+
     string[] private normalTokenTypes;
     string[] private premiumTokenTypes;
+    
+    mapping(string => Element) normalTokenElement;
+    mapping(string => Element) premiumTokenElement;
 
     event NormalTokenTypeAdded(string tokenType);
     event PremiumTokenTypeAdded(string tokenType);
@@ -15,13 +20,15 @@ contract TokenTypeManager is Ownable {
     constructor() Ownable(msg.sender){
     }
 
-    function addNormalTokenType(string calldata _tokenType) external onlyOwner {
+    function addNormalTokenType(string calldata _tokenType, Element element) external onlyOwner {
         normalTokenTypes.push(_tokenType);
+        normalTokenElement[_tokenType] = element;
         emit NormalTokenTypeAdded(_tokenType);
     }
 
-    function addPremiumTokenType(string calldata _tokenType) external onlyOwner {
+    function addPremiumTokenType(string calldata _tokenType, Element element) external onlyOwner {
         premiumTokenTypes.push(_tokenType);
+        premiumTokenElement[_tokenType] = element;
         emit PremiumTokenTypeAdded(_tokenType);
     }
 
@@ -62,7 +69,19 @@ contract TokenTypeManager is Ownable {
         return false;
     }
 
-     function getNormalTokenTypes() external view returns (string[] memory) {
+    function getTokenElement(string calldata _tokenType) external view returns(string memory) {
+        if(normalTokenElement[_tokenType] == Element.Fire) return "Fire";
+        if(normalTokenElement[_tokenType] == Element.Water) return "Water";
+        if(normalTokenElement[_tokenType] == Element.Wind) return "Wind";
+        if(normalTokenElement[_tokenType] == Element.Earth) return "Earth";
+        if(normalTokenElement[_tokenType] == Element.Steel) return "Steel";
+        if(normalTokenElement[_tokenType] == Element.Light) return "Light";
+        if(normalTokenElement[_tokenType] == Element.Dark) return "Dark";
+
+        revert("Invalid element");
+    }
+
+    function getNormalTokenTypes() external view returns (string[] memory) {
         return normalTokenTypes;
     }
 
@@ -83,5 +102,4 @@ contract TokenTypeManager is Ownable {
         uint256 randomIndex = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, msg.sender))) % tokenArray.length;
         return tokenArray[randomIndex];
     }
-
 }

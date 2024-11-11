@@ -4,8 +4,9 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./PersonalityCalculator.sol";
 
-contract TokenBase is ERC721, ERC721URIStorage, Ownable {
+contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator {
     enum GrowthStage{Egg, Hatch, Hatchling, Adult}
     
     struct Token {
@@ -16,6 +17,9 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
         uint256 generation;
         bool isPremium;
         uint256 birth;
+
+        string element;
+        string personality;
     }
 
     struct GrowthTime {
@@ -25,7 +29,7 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
     }
 
     mapping(uint256 => Token) internal tokens;
-    mapping(uint256=>GrowthStage) private growthStages;
+    mapping(uint256=> GrowthStage) private growthStages;
     mapping(uint256 => GrowthTime) internal growthTime;
     mapping(address => uint256[]) internal userTokens;
 
@@ -60,6 +64,9 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
         } else if(currentStage == GrowthStage.Hatch && currentTime >= growthTime[tokenId].hatchling) {
             growthStages[tokenId] = GrowthStage.Hatchling;
             growthTime[tokenId].adult = currentTime + 3 days;
+
+            Personality personality = determinePersonality(tokenId);
+            tokens[tokenId].personality = _getPersonalityString(personality);
             emit TokenEvolved(tokenId, "Hatchling");
         } else if(currentStage == GrowthStage.Hatchling && currentTime >= growthTime[tokenId].adult) {
             growthStages[tokenId] = GrowthStage.Adult;
@@ -108,7 +115,16 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
         timeRemaining = (endTime > currentTime) ? (endTime - currentTime) : 0;
     }
 
-    function mintToken(string memory _tokenType, uint256 _husbandId, uint256 _wifeId, uint256 _generation,address _owner, bool _isPremium) internal returns(uint256) {
+    function mintToken(
+        string memory _tokenType, 
+        uint256 _husbandId, 
+        uint256 _wifeId, 
+        uint256 _generation,
+        address _owner, 
+        bool _isPremium, 
+
+        string memory _element
+    ) internal returns(uint256) {
         uint256 tokenId = ++newTokenId;
         tokens[tokenId] = Token({
             tokenType: _tokenType,
@@ -117,7 +133,10 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
             wifeId: _wifeId,
             generation: _generation,
             isPremium: _isPremium,
-            birth: block.timestamp
+            birth: block.timestamp,
+
+            element: _element,
+            personality: ""
         });
 
         growthTime[tokenId].hatch = block.timestamp + 2 days;
@@ -141,11 +160,33 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
         } else if(currentStage == GrowthStage.Hatch) {
             growthStages[tokenId] = GrowthStage.Hatchling;
             growthTime[tokenId].adult = block.timestamp + 3 days;
+            Personality personality = determinePersonality(tokenId);
+            tokens[tokenId].personality = _getPersonalityString(personality);
         } else if(currentStage == GrowthStage.Hatchling) {
             growthStages[tokenId] = GrowthStage.Adult;
         } else {
             revert("Unable to evolve");
         }
+    }
+
+    function _getPersonalityString(Personality personality) internal pure returns (string memory) {
+        if (personality == Personality.Naive) return "Naive";
+        if (personality == Personality.Rash) return "Rash";
+        if (personality == Personality.Hasty) return "Hasty";
+        if (personality == Personality.QuickWitted) return "QuickWitted";
+        if (personality == Personality.Brave) return "Brave";
+        if (personality == Personality.Quirky) return "Quirky";
+        if (personality == Personality.Adamant) return "Adamant";
+        if (personality == Personality.Bold) return "Bold";
+        if (personality == Personality.Quiet) return "Quiet";
+        if (personality == Personality.Calm) return "Calm";
+        if (personality == Personality.Careful) return "Careful";
+        if (personality == Personality.Hardy) return "Hardy";
+        if (personality == Personality.Docile) return "Docile";
+        if (personality == Personality.Bashful) return "Bashful";
+        if (personality == Personality.Lax) return "Lax";
+        if (personality == Personality.Smart) return "Smart";
+        revert("Invalid personality");
     }
 
     function getRandomGender() internal returns(uint) {
@@ -212,6 +253,10 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable {
                 imageExtension,
                 "\",\"attributes\":[{\"trait_type\":\"Dragon\",\"value\":\"",
                 tokens[tokenId].tokenType,
+                "\"}, {\"trait_type\":\"Element\",\"value\":\"",
+                tokens[tokenId].element,
+                "\"}, {\"trait_type\":\"Personality\",\"value\":\"",
+                tokens[tokenId].personality,
                 "\"}]}"
             ));
         }

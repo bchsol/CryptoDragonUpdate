@@ -18,17 +18,19 @@ contract Token is Breeding {
 
     function normalMint(address owner) external {
         string memory tokenType = tokenTypeManager.getRandomNormalTokenType();
+        string memory element = tokenTypeManager.getTokenElement(tokenType);
         require(tokenTypeManager.isAllowedNormalTokenType(tokenType), "Invalid token type");
         mintCount++;
-        mintToken(tokenType,0, 0, 1, owner, false);
+        mintToken(tokenType,0, 0, 1, owner, false, element);
     }
 
     function premiumMint(address owner) external {
         require(premiumMintEnabled, "Premium minting is not enabled");
         string memory tokenType = tokenTypeManager.getRandomPremiumTokenType();
+        string memory element = tokenTypeManager.getTokenElement(tokenType);
         require(tokenTypeManager.isAllowedPremiumTokenType(tokenType), "Invalid token type");
         mintCount++;
-        mintToken(tokenType,0,0,1,owner, true);
+        mintToken(tokenType,0,0,1,owner, true, element);
     }
 
     function getToken(uint256 id) external view returns(
@@ -37,10 +39,12 @@ contract Token is Breeding {
         uint256 wifeId,
         uint256 generation,
         uint256 birth,
-        string memory tokenType
+        string memory tokenType,
+        string memory element,
+        string memory personality
         ){
             Token storage token = tokens[id];
-            return (token.gender, token.husbandId, token.wifeId, token.generation, token.birth, token.tokenType);
+            return (token.gender, token.husbandId, token.wifeId, token.generation, token.birth, token.tokenType, token.element, token.personality);
     }
 
     function getUserNftIds(address user) external view returns (uint256[] memory) {
