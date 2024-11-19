@@ -3,11 +3,11 @@ pragma solidity ^0.8.20;
 
 import "./TokenBase.sol";
 
-contract Breeding is TokenBase{
+contract Breeding is TokenBase {
 
     struct Breed {
-        uint256 releaseTime;
-        uint256 count;
+        uint256 releaseTime;  // 다음 번식이 가능한 시간
+        uint256 count;        // 총 번식 횟수
     }
 
     mapping(uint256 => Breed) private breedData;
@@ -16,71 +16,107 @@ contract Breeding is TokenBase{
 
     constructor(address initialOwner, string memory name, string memory symbol) TokenBase(initialOwner,name,symbol) {}
 
-    function breed(uint256 husbandId, uint256 wifeId) external returns(uint256){
-        require(ownerOf(husbandId) == msg.sender && ownerOf(wifeId) == msg.sender, "Not owner");
-        require(!_isIncest(husbandId,wifeId), "Incest");
-        require(_canBreed(husbandId) && _canBreed(wifeId), "Breeding not allowed yet");
-        require(_areDifferentGenders(husbandId,wifeId), "Same gender");
+    /// @notice 두 토큰을 번식시켜 새로운 토큰을 생성
+    /// @return 새로 생성된 자식 토큰 ID
+    function breedTokens(uint256 husbandId, uint256 wifeId) external returns(uint256) {
+        require(
+            ownerOf(husbandId) == msg.sender && 
+            ownerOf(wifeId) == msg.sender, 
+            "Not owner"
+        );
+        
+        Token storage husband = tokens[husbandId];
+        Token storage wife = tokens[wifeId];
+        
+        require(
+            !_isIncest(husband, wife) &&
+            _canBreed(husbandId) && 
+            _canBreed(wifeId) &&
+            husband.gender != wife.gender,
+            "Breeding conditions not met"
+        );
 
         _updateBreedData(husbandId);
         _updateBreedData(wifeId);
 
-        string memory tokenType = _determineChildTokenType(husbandId, wifeId);
-
-        uint256 tokenId = _createChildToken(tokenType, husbandId, wifeId);
+        string memory tokenType = _determineChildTokenType(husband, wife);
+        uint256 tokenId = _createChildToken(tokenType, husband, wife);
 
         emit TokenBreed(husbandId, wifeId, tokenId);
-
         return tokenId;
     }
 
-    function _determineChildTokenType(uint256 husbandId, uint256 wifeId) internal view returns(string memory) {
-        Token storage husband = tokens[husbandId];
-        Token storage wife = tokens[wifeId];
-
-        if (keccak256(abi.encodePacked(husband.tokenType)) == keccak256(abi.encodePacked(wife.tokenType))) {
-            return husband.tokenType;
-        } else {
-            return (uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, msg.sender))) % 2 == 0)
-                ? husband.tokenType
-                : wife.tokenType;
-        }
-    }
-
-    function _isIncest(uint256 husbandId, uint256 wifeId) internal view returns(bool){
-        Token storage husband = tokens[husbandId];
-        Token storage wife = tokens[wifeId];
+    /// @notice 자식 토큰의 타입을 결정하는 내부 함수
+    function _determineChildTokenType(Token storage husband, Token storage wife) 
+        private 
+        view 
+        returns(string memory) 
+    {
+        bytes32 husbandType = keccak256(abi.encodePacked(husband.tokenType));
+        bytes32 wifeType = keccak256(abi.encodePacked(wife.tokenType));
         
-        return (husband.generation == 1 || wife.generation == 1) ? false : (husband.husbandId == wife.husbandId || husband.wifeId == wife.wifeId);
+        if (husbandType == wifeType) {
+            return husband.tokenType;
+        }
+
+        uint256 rand = uint256(keccak256(abi.encodePacked(
+            block.timestamp,
+            block.prevrandao,
+            msg.sender
+        )));
+        
+        return (rand % 2 == 0) ? husband.tokenType : wife.tokenType;
     }
 
-    function _areDifferentGenders(uint256 husbandId, uint256 wifeId) internal view returns(bool) {
-        Token storage husband = tokens[husbandId];
-        Token storage wife = tokens[wifeId];
-        return husband.gender != wife.gender;
+    /// @notice 근친 여부를 확인하는 내부 함수
+    function _isIncest(Token storage husband, Token storage wife) 
+        private 
+        view 
+        returns(bool)
+    {
+        if (husband.generation == 1 || wife.generation == 1) return false;
+        return husband.husbandId == wife.husbandId || husband.wifeId == wife.wifeId;
     }
 
-    function _canBreed(uint256 tokenId) internal view returns(bool) {
+    /// @notice 번식 가능 여부를 확인하는 내부 함수
+    function _canBreed(uint256 tokenId) private view returns(bool) {
         return breedData[tokenId].releaseTime < block.timestamp;
     }
 
-    function _updateBreedData(uint256 tokenId) internal {
-        breedData[tokenId].count++;
-        breedData[tokenId].releaseTime = block.timestamp + 3 days;
+    /// @notice 번식 데이터를 업데이트하는 내부 함수
+    function _updateBreedData(uint256 tokenId) private {
+        Breed storage breed = breedData[tokenId];
+        breed.count++;
+        breed.releaseTime = block.timestamp + 3 days;
     }
 
-    function _createChildToken(string memory tokenType, uint256 husbandId, uint256 wifeId) internal returns(uint256){
-         Token storage husband = tokens[husbandId];
-         Token storage wife = tokens[wifeId];
-
-         uint256 parentGen = (husband.generation > wife.generation) ? husband.generation : wife.generation;
-         uint256 tokenId = mintToken(tokenType, husbandId, wifeId, parentGen + 1, msg.sender, false, "");
-
-         return tokenId;
+    /// @notice 자식 토큰을 생성하는 내부 함수
+    function _createChildToken(
+        string memory tokenType, 
+        Token storage husband,
+        Token storage wife
+    ) private returns(uint256) {
+        uint256 parentGen = husband.generation > wife.generation ? 
+            husband.generation : wife.generation;
+            
+        return mintToken(
+            tokenType,
+            husband.husbandId,
+            wife.wifeId,
+            parentGen + 1,
+            msg.sender,
+            false,
+            ""
+        );
     }
 
-    function getbreedData(uint256 tokenId) external view returns(uint256 releaseTime, uint256 count) {
-        releaseTime = breedData[tokenId].releaseTime;
-        count = breedData[tokenId].count;
+    /// @notice 토큰의 번식 데이터를 조회하는 외부 함수
+    function getBreedData(uint256 tokenId) 
+        external 
+        view 
+        returns(uint256 releaseTime, uint256 count) 
+    {
+        Breed memory breed = breedData[tokenId];
+        return (breed.releaseTime, breed.count);
     }
 }

@@ -51,47 +51,79 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator {
         
     }
 
+    // 토큰 진화 단계별 소요 시간 상수 정의
+    uint256 private constant HATCH_DURATION = 2 days;
+    uint256 private constant HATCHLING_DURATION = 3 days;
+    uint256 private constant FEEDING_REDUCTION = 3 hours;
+
+
+    /// @notice 토큰을 다음 단계로 진화시키는 함수
+    /// Egg -> Hatch -> Hatchling -> Adult 순서로 진화
+    /// 각 단계별로 필요한 시간이 지나야 진화 가능
     function evolve(uint256 tokenId) external {
         require(ownerOf(tokenId) == msg.sender, "Not owner");
         GrowthStage currentStage = growthStages[tokenId];
         uint256 currentTime = block.timestamp;
 
         if(currentStage == GrowthStage.Egg && currentTime >= growthTime[tokenId].hatch) {
-            growthStages[tokenId] = GrowthStage.Hatch;
-            tokens[tokenId].gender = getRandomGender();
-            growthTime[tokenId].hatchling = currentTime + 2 days;
-            emit TokenEvolved(tokenId, "Hatch");
+            _evolveToHatch(tokenId, currentTime);
         } else if(currentStage == GrowthStage.Hatch && currentTime >= growthTime[tokenId].hatchling) {
-            growthStages[tokenId] = GrowthStage.Hatchling;
-            growthTime[tokenId].adult = currentTime + 3 days;
-
-            Personality personality = determinePersonality(tokenId);
-            tokens[tokenId].personality = _getPersonalityString(personality);
-            emit TokenEvolved(tokenId, "Hatchling");
+            _evolveToHatchling(tokenId, currentTime);
         } else if(currentStage == GrowthStage.Hatchling && currentTime >= growthTime[tokenId].adult) {
-            growthStages[tokenId] = GrowthStage.Adult;
-            emit TokenEvolved(tokenId, "Adult");
+            _evolveToAdult(tokenId);
         } else {
-            revert( "Unable to evolve");
+            revert("Unable to evolve");
         }
     }
-    
+
+
+     /// @notice 먹이를 주어 성장 시간을 단축시키는 함수
+     /// 하루에 최대 3시간까지 단축 가능
     function feeding(uint256 tokenId) external {
         require(ownerOf(tokenId) == msg.sender, "Not owner");
         GrowthStage currentStage = growthStages[tokenId];
         GrowthTime storage time = growthTime[tokenId];
         uint256 currentTime = block.timestamp;
 
-        if (currentStage == GrowthStage.Egg) {
-            time.hatch = reduceTimeIfPossible(currentTime, time.hatch, 3 hours);
-        } else if (currentStage == GrowthStage.Hatch) {
-            time.hatchling = reduceTimeIfPossible(currentTime, time.hatchling, 3 hours);
-        } else if (currentStage == GrowthStage.Hatchling) {
-            time.adult = reduceTimeIfPossible(currentTime, time.adult, 3 hours);
-        } else {
-            revert("Invalid growth stage");
+        if (currentStage == GrowthStage.Adult) {
+            revert("Already adult");
         }
-        emit TokenFeed(tokenId, currentTime);
+
+        uint256 targetTime = currentStage == GrowthStage.Egg ? time.hatch :
+                            currentStage == GrowthStage.Hatch ? time.hatchling :
+                            time.adult;
+
+        uint256 newTime = reduceTimeIfPossible(currentTime, targetTime, FEEDING_REDUCTION);
+
+        if (currentStage == GrowthStage.Egg) {
+            time.hatch = newTime;
+        } else if (currentStage == GrowthStage.Hatch) {
+            time.hatchling = newTime;
+        } else {
+            time.adult = newTime;
+        }
+
+        emit TokenFeed(tokenId, newTime);
+    }
+
+    /// 내부 헬퍼 함수들
+    function _evolveToHatch(uint256 tokenId, uint256 currentTime) private {
+        growthStages[tokenId] = GrowthStage.Hatch;
+        tokens[tokenId].gender = getRandomGender();
+        growthTime[tokenId].hatchling = currentTime + HATCHLING_DURATION;
+        emit TokenEvolved(tokenId, "Hatch");
+    }
+
+    function _evolveToHatchling(uint256 tokenId, uint256 currentTime) private {
+        growthStages[tokenId] = GrowthStage.Hatchling;
+        growthTime[tokenId].adult = currentTime + HATCH_DURATION;
+        tokens[tokenId].personality = _getPersonalityString(determinePersonality(tokenId));
+        emit TokenEvolved(tokenId, "Hatchling");
+    }
+
+    function _evolveToAdult(uint256 tokenId) private {
+        growthStages[tokenId] = GrowthStage.Adult;
+        emit TokenEvolved(tokenId, "Adult");
     }
 
     function reduceTimeIfPossible( uint256 currentTime,uint256 growthEndTime, uint256 reduction) internal pure returns(uint256){
@@ -115,6 +147,9 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator {
         timeRemaining = (endTime > currentTime) ? (endTime - currentTime) : 0;
     }
 
+
+    /// @notice 새로운 토큰을 발행하는 함수
+    /// @return 새로 생성된 토큰의 ID
     function mintToken(
         string memory _tokenType, 
         uint256 _husbandId, 
@@ -122,7 +157,6 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator {
         uint256 _generation,
         address _owner, 
         bool _isPremium, 
-
         string memory _element
     ) internal returns(uint256) {
         uint256 tokenId = ++newTokenId;
@@ -151,6 +185,7 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator {
     }
 
 
+    /// @notice 관리자가 토큰을 강제로 진화시키는 함수
     function forceEvolve(uint256 tokenId) external onlyOwner {
         GrowthStage currentStage = growthStages[tokenId];
         if(currentStage == GrowthStage.Egg) {
@@ -169,6 +204,9 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator {
         }
     }
 
+
+    /// @notice 성격 타입을 문자열로 변환하는 내부 함수
+    /// @return 성격을 나타내는 문자열
     function _getPersonalityString(Personality personality) internal pure returns (string memory) {
         if (personality == Personality.Naive) return "Naive";
         if (personality == Personality.Rash) return "Rash";
@@ -189,27 +227,43 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator {
         revert("Invalid personality");
     }
 
+
+    /// @notice 랜덤한 성별을 생성하는 내부 함수
+    /// @return 1(수컷) 또는 2(암컷)의 값
     function getRandomGender() internal returns(uint) {
         randNonce++;
         return uint(keccak256(abi.encodePacked(block.timestamp,msg.sender,randNonce))) % 2 + 1;
     }
 
+    
+    /// @notice 토큰 메타데이터의 기본 URI를 설정하는 함수
+    /// @param _dataURI 설정할 데이터 URI
     function setDataURI(string calldata _dataURI) public onlyOwner {
         dataURI = _dataURI;
     }
 
+    
+    /// @notice 토큰의 URI를 설정하는 함수
+    /// @param _tokenURI 설정할 토큰 URI
     function setTokenURI(string calldata _tokenURI) public onlyOwner {
         baseTokenURI = _tokenURI;
     }
 
+    /// @notice 메타데이터 설명을 설정하는 함수
+    /// @param _metaDec 설정할 메타데이터 설명
     function setMetaDescription(string calldata _metaDec) public onlyOwner {
         metaDescription = _metaDec;
     }
 
+    /// @notice 이미지 확장자를 설정하는 함수
+    /// @param _imgEx 설정할 이미지 확장자
     function setImageExtension(string calldata _imgEx) public onlyOwner {
         imageExtension = _imgEx;
     }
 
+
+    /// @notice 토큰의 메타데이터 URI를 조회하는 함수
+    /// @return 토큰의 메타데이터 URI 문자열
     function tokenURI(uint256 tokenId)
         public
         view
@@ -262,6 +316,9 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator {
         }
     }
     
+
+    /// @notice 인터페이스 지원 여부를 확인하는 함수
+    /// @return 지원 여부 (bool)
     function supportsInterface(bytes4 interfaceId)
         public
         view

@@ -5,7 +5,7 @@ import "../Interfaces/IDragonDrink.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Quest is Ownable {
-    IDragonDrink public drinkContract;
+    IDragonDrink public immutable drinkContract;
     
     mapping(address => uint256) private lastBattleCompletionTime;
     mapping(address => uint256) private lastExploreCompletionTime;
@@ -36,45 +36,62 @@ contract Quest is Ownable {
         _;
     }
 
+    /// @notice 전투 퀘스트 완료 확인 및 보상 요청 설정
     function battleCheck(address user) 
         external
         onlyAuthorized(battleContract)
         questCooldown(lastBattleCompletionTime[user])
     {
-        lastBattleCompletionTime[user] = today();
+        uint256 currentDay = today();
+        lastBattleCompletionTime[user] = currentDay;
         requestBattle[user] = true;
     }
 
+    /// @notice 탐험 퀘스트 완료 확인 및 보상 요청 설정
     function exploreCheck(address user) 
         external
         onlyAuthorized(exploreContract)
         questCooldown(lastExploreCompletionTime[user])
     {
-        lastExploreCompletionTime[user] = today();
+        uint256 currentDay = today();
+        lastExploreCompletionTime[user] = currentDay;
         requestExplore[user] = true;
     }
 
+    /// @notice 전투 퀘스트 보상 요청 처리
     function requestBattleReward() external {
-        require(requestBattle[msg.sender], "battle incompleted");
+        require(requestBattle[msg.sender], "Battle quest not completed");
         requestBattle[msg.sender] = false;
         mintTokens(msg.sender, battleReward); 
     }
 
+    /// @notice 탐험 퀘스트 보상 요청 처리
     function requestExploreReward() external {
-        require(requestExplore[msg.sender], "exploraion incompleted");
+        require(requestExplore[msg.sender], "Exploration quest not completed");
         requestExplore[msg.sender] = false;
         mintTokens(msg.sender, exploreReward);
     }
 
+    /// @notice 모든 퀘스트 보상 한번에 요청 처리
     function requestAllReward() external {
-        require(requestBattle[msg.sender] && requestExplore[msg.sender], "battle or exploration incompleted");
+        require(
+            requestBattle[msg.sender] && requestExplore[msg.sender], 
+            "Both quests must be completed"
+        );
+        
         requestBattle[msg.sender] = false;
         requestExplore[msg.sender] = false;
         mintTokens(msg.sender, battleReward + exploreReward);
     }
 
+    /// @notice 사용자에게 보상 토큰 발행
     function mintTokens(address user, uint256 amount) internal {
         drinkContract.mint(user, amount);
+    }
+
+    /// @notice 오늘 날짜 타임스탬프 계산 (일 단위)
+    function today() internal view returns(uint256) {
+        return block.timestamp / 1 days;
     }
 
     function getBattleCompleted(address user) external view returns(bool) {
@@ -91,10 +108,6 @@ contract Quest is Ownable {
 
     function setExploreContract(address _exploreContract) external onlyOwner {
         exploreContract = _exploreContract;
-    }
-
-    function today() internal view returns(uint) {
-        return block.timestamp / 1 days;
     }
 
 }

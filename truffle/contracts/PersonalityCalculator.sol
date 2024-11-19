@@ -28,138 +28,113 @@ contract PersonalityCalculator {
 
     uint256 private constant MAX_DAILY_TRAINING = 3;
 
+
+    /// @notice 속성 훈련 함수
+    /// 하루에 최대 3번까지 훈련 가능
+    /// 훈련을 통해 특정 속성값 증가
     function trainAttribute(uint256 tokenId, Attribute attribute) external {
         uint256 currentDate = block.timestamp / 1 days;
-
-        if(trainingData[tokenId].lastTrainingDate < currentDate) {
-            trainingData[tokenId].lastTrainingDate = currentDate;
-            trainingData[tokenId].trainingCount = 0;
-        }
-
-        require(trainingData[tokenId].trainingCount < MAX_DAILY_TRAINING, "Training limit reached for today");
-        trainingData[tokenId].trainingCount += 1;
+        TrainingData storage data = trainingData[tokenId];
         
-        if(attribute == Attribute.Quickness) {
-            attributes[tokenId].quickness++;
-        } else if(attribute == Attribute.Strength) {
-            attributes[tokenId].strength;
-        } else if(attribute == Attribute.Focus) {
-            attributes[tokenId].focus;
-        } else if(attribute == Attribute.Intelligence) {
-            attributes[tokenId].intelligence++;
+        if(data.lastTrainingDate < currentDate) {
+            data.lastTrainingDate = currentDate;
+            data.trainingCount = 0;
         }
+
+        require(data.trainingCount < MAX_DAILY_TRAINING, "Training limit reached for today");
+        data.trainingCount++;
+        
+        _increaseAttribute(tokenId, attribute);
     }
 
-    function determinePersonality(uint256 tokenId) internal view returns (Personality){
-        uint256 quickness = attributes[tokenId].quickness;
-        uint256 strength = attributes[tokenId].strength;
-        uint256 focus = attributes[tokenId].focus;
-        uint256 intelligence = attributes[tokenId].intelligence;
-
-        uint256[] memory values = new uint256[](4);
-        values[0] = quickness;
-        values[1] = strength;
-        values[2] = focus;
-        values[3] = intelligence;
-
-        (uint256 maxCount, uint256 minCount, uint256[] memory maxIndices, uint256[] memory minIndices) = _getMaxMinIndices(values);
-
-        if(maxCount > 1) {
-            return _randomPersonality(maxIndices);
+    /// @notice 토큰의 성격을 결정하는 함수
+    /// @return 결정된 성격
+    function determinePersonality(uint256 tokenId) internal view returns (Personality) {
+        Attributes memory attr = attributes[tokenId];
+        uint256[4] memory values = [attr.quickness, attr.strength, attr.focus, attr.intelligence];
+        
+        (uint8 maxIndex, uint8 minIndex, bool hasMultipleMax) = _findMaxMinIndices(values);
+        
+        if (hasMultipleMax) {
+            return _getDefaultPersonality(maxIndex);
         }
-
-        if(maxIndices[0] == uint256(Attribute.Quickness)) {
-            return _personalityForQuicknessMin(minIndices,minCount);
-        } else if(maxIndices[1] == uint256(Attribute.Strength)) {
-            return _personalityForStrengthMin(minIndices, minCount);
-        } else if(maxIndices[2] == uint256(Attribute.Focus)) {
-            return _personalityForFocusMin(minIndices, minCount);
-        } else if(maxIndices[3] == uint256(Attribute.Intelligence)) {
-            return _personalityForIntelligenceMin(minIndices, minCount);
-        }
-        revert("No personality found");
+        
+        return _getPersonalityMatrix(maxIndex, minIndex);
     }
 
-    function _getMaxMinIndices(uint256[] memory values) internal pure returns (uint256 maxCount, uint256 minCount, uint256[] memory maxIndices, uint256[] memory minIndices) {
+    /// @notice 배열에서 최대/최소값의 인덱스를 찾는 최적화된 함수
+    /// @param values 속성값 배열
+    /// @return maxIndex 최대값 인덱스
+    /// @return minIndex 최소값 인덱스
+    /// @return hasMultipleMax 최대값이 여러개인지 여부
+    function _findMaxMinIndices(uint256[4] memory values) private pure returns (
+        uint8 maxIndex,
+        uint8 minIndex,
+        bool hasMultipleMax
+    ) {
         uint256 maxValue = 0;
         uint256 minValue = type(uint256).max;
-
-        maxIndices = new uint256[](4);
-        minIndices = new uint256[](4);
-
-        for(uint i = 0; i < values.length; i++) {
+        
+        for(uint8 i = 0; i < 4; i++) {
             if(values[i] > maxValue) {
                 maxValue = values[i];
-                maxCount = 1;
-                maxIndices[0] = i;
-            } else if(values[i] == maxValue){
-                maxIndices[maxCount] = i;
-                maxCount++;
+                maxIndex = i;
+                hasMultipleMax = false;
+            } else if(values[i] == maxValue) {
+                hasMultipleMax = true;
             }
-
+            
             if(values[i] < minValue) {
                 minValue = values[i];
-                minCount = 1;
-                minIndices[0] = i;
-            } else if(values[i] == minValue) {
-                minIndices[minCount] = i;
-                minCount++;
+                minIndex = i;
             }
         }
     }
 
-    function _randomPersonality(uint256[] memory indices) internal view returns (Personality) {
-        uint256 rand = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty))) % indices.length;
-        uint256 selected = indices[rand];
+    /// @notice 기본 성격을 반환하는 함수 (최대값이 여러개일 때 사용)
+    /// @param attributeIndex 속성 인덱스
+    /// @return 해당 속성의 기본 성격
+    function _getDefaultPersonality(uint8 attributeIndex) private pure returns (Personality) {
+        Personality[4] memory defaults = [
+            Personality.QuickWitted,
+            Personality.Bold,
+            Personality.Hardy,
+            Personality.Smart
+        ];
+        return defaults[attributeIndex];
+    }
 
-        if (selected == uint256(Attribute.Quickness)) {
-            return Personality.QuickWitted;
-        } else if (selected == uint256(Attribute.Strength)) {
-            return Personality.Bold;
-        } else if (selected == uint256(Attribute.Focus)) {
-            return Personality.Hardy;
-        } else {
-            return Personality.Smart;
+    /// @notice 성격 매트릭스를 통해 성격을 결정하는 함수
+    /// @param maxIndex 최대 속성 인덱스
+    /// @param minIndex 최소 속성 인덱스
+    /// @return 결정된 성격
+    function _getPersonalityMatrix(uint8 maxIndex, uint8 minIndex) private pure returns (Personality) {
+        // 성격 매트릭스 정의 [최대속성][최소속성]
+        Personality[4][4] memory personalityMatrix = [
+            // Quickness max
+            [Personality.QuickWitted, Personality.Naive, Personality.Rash, Personality.Hasty],
+            // Strength max
+            [Personality.Brave, Personality.Bold, Personality.Quirky, Personality.Adamant],
+            // Focus max
+            [Personality.Quiet, Personality.Calm, Personality.Hardy, Personality.Careful],
+            // Intelligence max
+            [Personality.Docile, Personality.Bashful, Personality.Lax, Personality.Smart]
+        ];
+        
+        return personalityMatrix[maxIndex][minIndex];
+    }
+
+    /// @notice 속성을 증가시키는 함수
+    function _increaseAttribute(uint256 tokenId, Attribute attribute) internal {
+        Attributes storage attr = attributes[tokenId];
+        if (attribute == Attribute.Quickness) {
+            attr.quickness++;
+        } else if (attribute == Attribute.Strength) {
+            attr.strength++;
+        } else if (attribute == Attribute.Focus) {
+            attr.focus++;
+        } else if (attribute == Attribute.Intelligence) {
+            attr.intelligence++;
         }
-    }
-
-    function _personalityForQuicknessMin(uint256[] memory minIndices, uint256 minCount) internal pure returns(Personality) {
-        if(minCount > 1) return Personality.QuickWitted;
-
-        if(minIndices[0] == uint256(Attribute.Strength)) return Personality.Naive;
-        if(minIndices[0] == uint256(Attribute.Focus)) return Personality.Rash;
-        if(minIndices[0] == uint256(Attribute.Intelligence)) return Personality.Hasty;
-
-        revert("Invalid min index");
-    }
-
-    function _personalityForStrengthMin(uint256[] memory minIndices, uint256 minCount) internal pure returns(Personality) {
-        if (minCount > 1) return Personality.Bold;
-
-        if (minIndices[0] == uint256(Attribute.Quickness)) return Personality.Brave;
-        if (minIndices[0] == uint256(Attribute.Focus)) return Personality.Quirky;
-        if (minIndices[0] == uint256(Attribute.Intelligence)) return Personality.Adamant;
-
-        revert("Invalid min index");
-    }
-
-    function _personalityForFocusMin(uint256[] memory minIndices, uint256 minCount) internal pure returns (Personality) {
-        if (minCount > 1) return Personality.Hardy;
-
-        if (minIndices[0] == uint256(Attribute.Quickness)) return Personality.Quiet;
-        if (minIndices[0] == uint256(Attribute.Strength)) return Personality.Calm;
-        if (minIndices[0] == uint256(Attribute.Intelligence)) return Personality.Careful;
-
-        revert("Invalid min index");
-    }
-
-    function _personalityForIntelligenceMin(uint256[] memory minIndices, uint256 minCount) internal pure returns (Personality) {
-        if (minCount > 1) return Personality.Smart;
-
-        if (minIndices[0] == uint256(Attribute.Quickness)) return Personality.Docile;
-        if (minIndices[0] == uint256(Attribute.Strength)) return Personality.Bashful;
-        if (minIndices[0] == uint256(Attribute.Focus)) return Personality.Lax;
-
-        revert("Invalid min index");
     }
 }
