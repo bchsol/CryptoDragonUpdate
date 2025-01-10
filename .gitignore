@@ -8,6 +8,8 @@ client/node_modules
 client/pages/Test.js
 client/src/contracts
 
+/test
+
 truffle/contracts/.deploy
 truffle/contracts/.deps
 truffle/contracts/.states

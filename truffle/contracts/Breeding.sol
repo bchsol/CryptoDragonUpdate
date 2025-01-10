@@ -14,31 +14,18 @@ contract Breeding is TokenBase {
 
     event TokenBreed(uint256 indexed husbandId, uint256 indexed wifeId, uint256 indexed childId);
 
-    constructor(address initialOwner, string memory name, string memory symbol) TokenBase(initialOwner,name,symbol) {}
+    constructor(address initialOwner, address trustedForwarder, string memory name, string memory symbol) TokenBase(initialOwner,trustedForwarder, name,symbol){}
 
     /// @notice 두 토큰을 번식시켜 새로운 토큰을 생성
     /// @return 새로 생성된 자식 토큰 ID
     function breedTokens(uint256 husbandId, uint256 wifeId) external returns(uint256) {
-        require(
-            ownerOf(husbandId) == msg.sender && 
-            ownerOf(wifeId) == msg.sender, 
-            "Not owner"
-        );
+        require(_validateBreeding(husbandId, wifeId), "Breeding conditions not met");
+        
+        _updateBreedData(husbandId);
+        _updateBreedData(wifeId);
         
         Token storage husband = tokens[husbandId];
         Token storage wife = tokens[wifeId];
-        
-        require(
-            !_isIncest(husband, wife) &&
-            _canBreed(husbandId) && 
-            _canBreed(wifeId) &&
-            husband.gender != wife.gender,
-            "Breeding conditions not met"
-        );
-
-        _updateBreedData(husbandId);
-        _updateBreedData(wifeId);
-
         string memory tokenType = _determineChildTokenType(husband, wife);
         uint256 tokenId = _createChildToken(tokenType, husband, wife);
 
@@ -46,6 +33,15 @@ contract Breeding is TokenBase {
         return tokenId;
     }
 
+    function _validateBreeding(uint256 husbandId, uint256 wifeId) private view returns (bool) {
+        return ownerOf(husbandId) == _msgSender() && 
+           ownerOf(wifeId) == _msgSender() &&
+           !_isIncest(tokens[husbandId], tokens[wifeId]) &&
+           _canBreed(husbandId) && 
+           _canBreed(wifeId) &&
+           tokens[husbandId].gender != tokens[wifeId].gender;
+    }
+    
     /// @notice 자식 토큰의 타입을 결정하는 내부 함수
     function _determineChildTokenType(Token storage husband, Token storage wife) 
         private 
@@ -62,7 +58,7 @@ contract Breeding is TokenBase {
         uint256 rand = uint256(keccak256(abi.encodePacked(
             block.timestamp,
             block.prevrandao,
-            msg.sender
+            _msgSender()
         )));
         
         return (rand % 2 == 0) ? husband.tokenType : wife.tokenType;
@@ -104,7 +100,7 @@ contract Breeding is TokenBase {
             husband.husbandId,
             wife.wifeId,
             parentGen + 1,
-            msg.sender,
+            _msgSender(),
             false,
             ""
         );

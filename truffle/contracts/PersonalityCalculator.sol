@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+
 contract PersonalityCalculator {
     enum Attribute {Quickness, Strength, Focus, Intelligence}
 
@@ -28,11 +30,13 @@ contract PersonalityCalculator {
 
     uint256 private constant MAX_DAILY_TRAINING = 3;
 
+    // 토큰별 확정된 가능한 성격들을 저장하는 매핑 추가
+    mapping(uint256 => Personality[]) public confirmedPersonalities;
 
     /// @notice 속성 훈련 함수
     /// 하루에 최대 3번까지 훈련 가능
     /// 훈련을 통해 특정 속성값 증가
-    function trainAttribute(uint256 tokenId, Attribute attribute) external {
+    function _trainAttribute(uint256 tokenId, Attribute attribute) internal {
         uint256 currentDate = block.timestamp / 1 days;
         TrainingData storage data = trainingData[tokenId];
         
@@ -53,45 +57,67 @@ contract PersonalityCalculator {
         Attributes memory attr = attributes[tokenId];
         uint256[4] memory values = [attr.quickness, attr.strength, attr.focus, attr.intelligence];
         
-        (uint8 maxIndex, uint8 minIndex, bool hasMultipleMax) = _findMaxMinIndices(values);
+        (uint8[] memory maxIndices, uint8[] memory minIndices) = _findMaxMinIndices(values);
         
-        if (hasMultipleMax) {
-            return _getDefaultPersonality(maxIndex);
+        if (minIndices.length >= 2) {
+            uint8 defaultRandomIndex = uint8(uint256(keccak256(abi.encodePacked(block.timestamp, tokenId))) % maxIndices.length);
+            return _getDefaultPersonality(maxIndices[defaultRandomIndex]);
         }
         
-        return _getPersonalityMatrix(maxIndex, minIndex);
+        uint8 randomMaxIndex = uint8(uint256(keccak256(abi.encodePacked(block.timestamp, tokenId))) % maxIndices.length);
+        return _getPersonalityMatrix(maxIndices[randomMaxIndex], minIndices[0]);
     }
 
     /// @notice 배열에서 최대/최소값의 인덱스를 찾는 최적화된 함수
-    /// @param values 속성값 배열
-    /// @return maxIndex 최대값 인덱스
-    /// @return minIndex 최소값 인덱스
-    /// @return hasMultipleMax 최대값이 여러개인지 여부
+    /// @return maxIndices 최대값을 가진 인덱스들의 배열
+    /// @return minIndices 최소값을 가진 인덱스들의 배열
     function _findMaxMinIndices(uint256[4] memory values) private pure returns (
-        uint8 maxIndex,
-        uint8 minIndex,
-        bool hasMultipleMax
+        uint8[] memory maxIndices,
+        uint8[] memory minIndices
     ) {
         uint256 maxValue = 0;
         uint256 minValue = type(uint256).max;
         
+        // 최대값과 최소값 찾기
         for(uint8 i = 0; i < 4; i++) {
             if(values[i] > maxValue) {
                 maxValue = values[i];
-                maxIndex = i;
-                hasMultipleMax = false;
-            } else if(values[i] == maxValue) {
-                hasMultipleMax = true;
             }
-            
             if(values[i] < minValue) {
                 minValue = values[i];
-                minIndex = i;
             }
+        }
+        
+        // 최대값과 최소값을 가진 인덱스들 수집
+        uint8[] memory tempMaxIndices = new uint8[](4);
+        uint8[] memory tempMinIndices = new uint8[](4);
+        uint8 maxCount = 0;
+        uint8 minCount = 0;
+        
+        for(uint8 i = 0; i < 4; i++) {
+            if(values[i] == maxValue) {
+                tempMaxIndices[maxCount] = i;
+                maxCount++;
+            }
+            if(values[i] == minValue) {
+                tempMinIndices[minCount] = i;
+                minCount++;
+            }
+        }
+        
+        // 실제 크기의 배열로 복사
+        maxIndices = new uint8[](maxCount);
+        minIndices = new uint8[](minCount);
+        
+        for(uint8 i = 0; i < maxCount; i++) {
+            maxIndices[i] = tempMaxIndices[i];
+        }
+        for(uint8 i = 0; i < minCount; i++) {
+            minIndices[i] = tempMinIndices[i];
         }
     }
 
-    /// @notice 기본 성격을 반환하는 함수 (최대값이 여러개일 때 사용)
+    /// @notice 기본 성격을 반환하는 함수 (최소값이 여러개일 때 사용)
     /// @param attributeIndex 속성 인덱스
     /// @return 해당 속성의 기본 성격
     function _getDefaultPersonality(uint8 attributeIndex) private pure returns (Personality) {
@@ -136,5 +162,12 @@ contract PersonalityCalculator {
         } else if (attribute == Attribute.Intelligence) {
             attr.intelligence++;
         }
+    }
+
+    /// @notice 저장된 확정 성격들을 조회하는 함수
+    /// @param tokenId 토큰 ID
+    /// @return 저장된 가능한 성격들의 배열
+    function getConfirmedPersonalities(uint256 tokenId) external view returns (Personality[] memory) {
+        return confirmedPersonalities[tokenId];
     }
 }

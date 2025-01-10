@@ -1,8 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  useWeb3ModalProvider,
-  useWeb3ModalAccount,
-} from "@web3modal/ethers/react";
+import { useWeb3ModalProvider,useWeb3ModalAccount } from "@web3modal/ethers/react";
 import { BrowserProvider, Contract, formatUnits } from "ethers";
 import { useNavigate } from "react-router-dom";
 
@@ -40,10 +37,15 @@ import {
 } from "../Style/marketStyles";
 
 import secretEggImage from "../image/secret_egg.png";
+import { createRequest, getInterface, getNonce, requestMetaTx } from "../utils/relay";
+import forwarder from "../contracts/forwarder";
 
 // Constants for market contract address and ABI
 const marketContractAddress = marketContractData.AddressSepolia;
 const marketAbi = marketContractData.Abi;
+
+const forwarderAddress = forwarder.AddressSepolia;
+const forwarderAbi = forwarder.Abi;
 
 function MarketPlace() {
   // State management for different components
@@ -180,14 +182,18 @@ function MarketPlace() {
     try {
       const ethersProvider = new BrowserProvider(walletProvider);
       const signer = await ethersProvider.getSigner();
-      const contract = new Contract(marketContractAddress, marketAbi, signer);
+      const contractInterface = getInterface(marketAbi);
+      const callFunction = contractInterface.encodeFunctionData(contractMethod, [itemId]);
 
-      const tx = await contract[contractMethod](itemId);
-      await tx.wait();
-      console.log(`Transaction ${contractMethod} complete`, tx);
+      const forwarderContract = new Contract(forwarderAddress, forwarderAbi, signer);
+      const nonce = await getNonce(forwarderContract, address);
+      const request = createRequest(address, marketContractAddress, callFunction, nonce);
+      const result = await requestMetaTx(signer, request);
+
+      console.log(result);
       window.location.reload();
     } catch (error) {
-      console.error(`Failed to ${contractMethod}: `, error);
+      console.error('Failed to transaction', error);
     }
   };
 

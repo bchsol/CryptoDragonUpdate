@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "../Interfaces/IQuest.sol";
 import "../Interfaces/IDragonDrink.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
 /// @title 일일 출석 체크 및 보상 컨트랙트
 /// @notice 사용자의 일일 출석과 연속 출석에 대한 보상을 관리
-contract DailyCheck is Ownable {
-    // 상태 변수
-    IQuest public questContract;
+contract DailyCheck is Ownable, ERC2771Context {
     IDragonDrink public drinkContract;
 
     uint256 public dailyCheckReward = 100;
@@ -24,8 +22,7 @@ contract DailyCheck is Ownable {
     event ConsecutiveRewardClaimed(address indexed user, uint256 reward);
     event RewardUpdated(string rewardType, uint256 newAmount);
 
-    constructor(address _questContract, address _drinkContract) Ownable(msg.sender) {
-        questContract = IQuest(_questContract);
+    constructor(address _drinkContract, address trustedForwarder) Ownable(_msgSender()) ERC2771Context(trustedForwarder){
         drinkContract = IDragonDrink(_drinkContract);
     }
 
@@ -33,17 +30,17 @@ contract DailyCheck is Ownable {
     /// @dev 하루에 한 번만 호출 가능
     function dailyCheck() external {
         uint256 currentDay = today();
-        require(lastConsecutiveCheckTime[msg.sender] < currentDay, "already daily check");
+        require(lastConsecutiveCheckTime[_msgSender()] < currentDay, "already daily check");
 
-        updateConsecutiveChecks(msg.sender);
+        updateConsecutiveChecks(_msgSender());
         
-        mintTokens(msg.sender, dailyCheckReward);
-        emit DailyCheckCompleted(msg.sender, dailyCheckReward, consecutiveDailyChecks[msg.sender]);
+        mintTokens(_msgSender(), dailyCheckReward);
+        emit DailyCheckCompleted(_msgSender(), dailyCheckReward, consecutiveDailyChecks[_msgSender()]);
 
-        if(consecutiveDailyChecks[msg.sender] == 7) {
-            mintTokens(msg.sender, consecutiveReward);
-            emit ConsecutiveRewardClaimed(msg.sender, consecutiveReward);
-            consecutiveDailyChecks[msg.sender] = 0;
+        if(consecutiveDailyChecks[_msgSender()] == 7) {
+            mintTokens(_msgSender(), consecutiveReward);
+            emit ConsecutiveRewardClaimed(_msgSender(), consecutiveReward);
+            consecutiveDailyChecks[_msgSender()] = 0;
         }
     }
 
@@ -80,12 +77,6 @@ contract DailyCheck is Ownable {
         emit RewardUpdated("consecutive", amount);
     }
 
-    /// @notice Quest 컨트랙트 주소 업데이트
-    function setQuestContract(address _questContract) external onlyOwner {
-        require(_questContract != address(0), "Invalid address");
-        questContract = IQuest(_questContract);
-    }
-
     /// @notice DragonDrink 컨트랙트 주소 업데이트
     function setDrinkContract(address _drinkContract) external onlyOwner {
         require(_drinkContract != address(0), "Invalid address");
@@ -103,5 +94,17 @@ contract DailyCheck is Ownable {
     /// @return 현재 타임스탬프를 일 단위로 변환한 값
     function today() internal view returns (uint256) {
         return block.timestamp / 1 days;
+    }
+
+    function _msgSender() internal view virtual override(Context, ERC2771Context) returns(address sender) {
+        return ERC2771Context._msgSender();
+    }
+
+    function _msgData() internal view virtual override(Context, ERC2771Context) returns(bytes calldata) {
+        return ERC2771Context._msgData();
+    }
+
+    function _contextSuffixLength() internal view virtual override(Context,ERC2771Context) returns (uint256) {
+        return 20;
     }
 }

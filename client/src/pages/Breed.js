@@ -12,10 +12,7 @@ import {
   DragonName,
 } from "../Style/BreedStyles";
 import { fetchNfts } from "../blockchain/fetchData";
-import {
-  useWeb3ModalProvider,
-  useWeb3ModalAccount,
-} from "@web3modal/ethers/react";
+import { useAppKitProvider, useAppKitAccount } from "@reown/appkit/react";
 import { BrowserProvider, Contract } from "ethers";
 
 import heartImage from "../image/heart.png";
@@ -33,8 +30,8 @@ function Breed() {
   const [maleNftIds, setMaleNftIds] = useState([]);
   const [femaleNftIds, setFemaleNftIds] = useState([]);
 
-  const { address, chainId, isConnected } = useWeb3ModalAccount();
-  const { walletProvider } = useWeb3ModalProvider();
+  const { address, chainId, isConnected } = useAppKitAccount();
+  const { walletProvider } = useAppKitProvider();
 
   useEffect(() => {
     if (isMaleModalOpen) {

@@ -8,24 +8,23 @@ import MarketPlace from "./pages/MarketPlace";
 import ItemDetail from "./pages/ItemDetail";
 import Quest from "./pages/Quest";
 
-import { createWeb3Modal, defaultConfig } from "@web3modal/ethers/react";
+// import { createAppKit } from '@reown/appkit/react'
+// import { EthersAdapter } from '@reown/appkit-adapter-ethers'
+// import { sepolia } from '@reown/appkit/networks'
 
-const projectId = "projectId";
+import { createWeb3Modal, defaultConfig } from '@web3modal/ethers/react'
+
+const projectId = "8715ae661e35d1fecf51af9cb79ce9e4";
+
+//const networks = [sepolia];
 
 const testnet = {
   chainId: 11155111,
-  name: "Sepolia",
-  currency: "ETH",
-  explorerUrl: "https://sepolia.etherscan.io/",
-  rpcUrl: "https://rpc.sepolia.org/",
-};
-
-const ganache = {
-  chainId: 1337,
-  name: "Ganache",
-  currency: "ETH",
-  rpcUrl: "http://127.0.0.1:8545",
-};
+  name: 'Sepolia',
+  currency: 'ETH',
+  explorerUrl: 'https://sepolia.etherscan.io',
+  rpcUrl: 'https://ethereum-sepolia-rpc.publicnode.com'
+}
 
 const metadata = {
   name: "Crypto Dragon",
@@ -34,16 +33,17 @@ const metadata = {
   url: "https://github.com/bchsol/CryptoDragon",
 };
 
-const ethersConfig = defaultConfig({
-  /*Required*/
-  metadata,
-});
+//const ethersAdapter = new EthersAdapter();
 
+const ethersConfig = defaultConfig({
+  metadata,
+
+})
 createWeb3Modal({
   ethersConfig,
-  chains: [ganache],
+  chains:[testnet],
   projectId,
-  enableAnalytics: true, // Optional - defaults to your Cloud configuration
+  enableAnalytics:true,
 });
 
 function App() {

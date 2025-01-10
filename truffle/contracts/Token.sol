@@ -12,39 +12,58 @@ contract Token is Breeding {
     event TokenMinted(address indexed owner, uint256 indexed tokenId, string tokenType, bool isPremium);
     event PremiumMintStatusChanged(bool isEnabled);
     
-    constructor(address initialOwner, address _tokenTypeManager, string memory name, string memory symbol) Breeding(initialOwner, name,symbol) {
+    constructor(
+        address initialOwner, 
+        address trustedForwarder,
+        address _tokenTypeManager, 
+        string memory name, 
+        string memory symbol
+    ) Breeding(initialOwner, trustedForwarder, name,symbol) {
         require(_tokenTypeManager != address(0), "Invalid token type manager address");
         tokenTypeManager = TokenTypeManager(_tokenTypeManager);
+    }
+
+    function _processMint(address owner, bool isPremium) private returns (uint256) {
+        string memory tokenType = isPremium ? 
+        tokenTypeManager.getRandomPremiumTokenType() : 
+        tokenTypeManager.getRandomNormalTokenType();
+
+        require(
+            isPremium ? 
+            tokenTypeManager.isAllowedPremiumTokenType(tokenType) : 
+            tokenTypeManager.isAllowedNormalTokenType(tokenType),
+            "Invalid type"
+        );
+        
+        uint256 newTokenId = ++mintCount;
+
+        mintToken(
+            tokenType, 
+            0, 
+            0, 
+            1, 
+            owner, 
+            isPremium, 
+            tokenTypeManager.getTokenElement(tokenType)
+        );
+        
+        emit TokenMinted(owner, newTokenId, tokenType, isPremium);
+
+        return newTokenId;
     }
 
 
     ///@notice 일반 토큰을 민팅합니다
     function normalMint(address owner) external {
-        require(owner != address(0), "Invalid owner address");
-        string memory tokenType = tokenTypeManager.getRandomNormalTokenType();
-        string memory element = tokenTypeManager.getTokenElement(tokenType);
-        require(tokenTypeManager.isAllowedNormalTokenType(tokenType), "Invalid token type");
-        
-        uint256 newTokenId = ++mintCount;
-        mintToken(tokenType, 0, 0, 1, owner, false, element);
-        
-        emit TokenMinted(owner, newTokenId, tokenType, false);
+        _processMint(owner, false);
     }
 
 
     /// @notice 프리미엄 토큰을 민팅합니다
     function premiumMint(address owner) external {
-        require(owner != address(0), "Invalid owner address");
         require(premiumMintEnabled, "Premium minting is not enabled");
-        
-        string memory tokenType = tokenTypeManager.getRandomPremiumTokenType();
-        string memory element = tokenTypeManager.getTokenElement(tokenType);
-        require(tokenTypeManager.isAllowedPremiumTokenType(tokenType), "Invalid token type");
-        
-        uint256 newTokenId = ++mintCount;
-        mintToken(tokenType, 0, 0, 1, owner, true, element);
-        
-        emit TokenMinted(owner, newTokenId, tokenType, true);
+
+        _processMint(owner, true);
     }
 
 

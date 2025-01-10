@@ -3,8 +3,9 @@ pragma solidity ^0.8.20;
 
 import "../Interfaces/IDragonDrink.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
-contract Quest is Ownable {
+contract Quest is Ownable, ERC2771Context{
     IDragonDrink public immutable drinkContract;
     
     mapping(address => uint256) private lastBattleCompletionTime;
@@ -20,7 +21,7 @@ contract Quest is Ownable {
     uint256 public exploreReward;
 
 
-    constructor(address _drinkContract) Ownable(msg.sender) {
+    constructor(address _drinkContract, address trustedForwarder) Ownable(msg.sender) ERC2771Context(trustedForwarder) {
         drinkContract = IDragonDrink(_drinkContract);
         battleReward = 100;
         exploreReward = 100;
@@ -108,6 +109,18 @@ contract Quest is Ownable {
 
     function setExploreContract(address _exploreContract) external onlyOwner {
         exploreContract = _exploreContract;
+    }
+
+    function _msgSender() internal view virtual override(Context, ERC2771Context) returns(address sender) {
+        return ERC2771Context._msgSender();
+    }
+
+    function _msgData() internal view virtual override(Context, ERC2771Context) returns(bytes calldata) {
+        return ERC2771Context._msgData();
+    }
+
+    function _contextSuffixLength() internal view virtual override(Context,ERC2771Context) returns (uint256) {
+        return 20;
     }
 
 }

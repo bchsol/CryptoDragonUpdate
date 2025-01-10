@@ -24,10 +24,7 @@ import {
   Button,
 } from "../Style/collectionStyles";
 import { fetchNfts } from "../blockchain/fetchData";
-import {
-  useWeb3ModalProvider,
-  useWeb3ModalAccount,
-} from "@web3modal/ethers/react";
+import { useWeb3ModalProvider,useWeb3ModalAccount } from "@web3modal/ethers/react";
 import {
   BrowserProvider,
   Contract,
@@ -39,6 +36,8 @@ import {
 import dragonContractData from "../contracts/dragonContract";
 import marketContractData from "../contracts/marketContract";
 import drinkContractData from "../contracts/drinkContract";
+import forwarder from "../contracts/forwarder";
+import { createRequest, getInterface, getNonce, requestMetaTx } from "../utils/relay";
 
 const dragonContractAddress = dragonContractData.AddressSepolia;
 const dragonAbi = dragonContractData.Abi;
@@ -46,6 +45,8 @@ const marketContractAddress = marketContractData.AddressSepolia;
 const marketAbi = marketContractData.Abi;
 const drinkContractAddress = drinkContractData.AddressSepolia;
 const drinkAbi = drinkContractData.Abi;
+const forwarderAddress = forwarder.AddressSepolia;
+const forwarderAbi = forwarder.Abi;
 
 function Collection() {
   // State Variables
@@ -125,7 +126,7 @@ function Collection() {
           let marketId = 0;
           let marketStatus = null;
           try {
-            marketId = await marketContract.getSaleStatusByToken(
+            marketId = await marketContract.tokenToItemId(
               dragonContractAddress,
               nft.id
             );
@@ -234,6 +235,7 @@ function Collection() {
   const listNftOnMarket = async (method) => {
     const ethersProvider = new BrowserProvider(walletProvider);
     const signer = await ethersProvider.getSigner();
+
     const marketContract = new Contract(
       marketContractAddress,
       marketAbi,
@@ -250,31 +252,57 @@ function Collection() {
       marketContractAddress
     );
 
-    if (!isApproved)
-      await dragonContract.setApprovalForAll(marketContractAddress, true);
+    if (!isApproved){
+      const forwarderContract = new Contract(forwarderAddress, forwarderAbi, signer);
+      
+      const nonce = await getNonce(forwarderContract, address);
+      
+      const callFunction = dragonContract.interface.encodeFunctionData('setApprovalForAll', [marketContractAddress, true]);
+    
+      const estimatedGas = await dragonContract.setApprovalForAll.estimateGas(marketContractAddress, true);
+      console.log(estimatedGas);
+      
+      const request = createRequest(address, dragonContractAddress, callFunction, nonce, estimatedGas);
+      const result = await requestMetaTx(signer, request);
+
+      console.log(result);
+    }
 
     if (method === "listItem") {
-      const tx = await marketContract[method](
+      const callFunction = marketContract.interface.encodeFunctionData(method, [
         dragonContractAddress,
         sellSelectNft,
         durationSec,
         parseUnits(price, 18),
         1,
-        true
-      );
+        true,
+      ]);
 
-      await tx.wait();
+
+      const forwarderContract = new Contract(forwarderAddress, forwarderAbi, signer);
+      const nonce = await getNonce(forwarderContract, address);
+      const request = createRequest(address, marketContractAddress, callFunction, nonce);
+
+      const result = await requestMetaTx(signer, request);
+
+      console.log(result);
       alert("Success");
       window.location.reload();
     } else if (method === "listAuction") {
-      const tx = await marketContract[method](
+      const callFunction = marketContract.interface.encodeFunctionData(method, [
         dragonContractAddress,
         sellSelectNft,
         durationSec,
-        parseUnits(price, 18)
-      );
+        parseUnits(price, 18),
+      ]);
 
-      await tx.wait();
+     
+      const nonce = await getNonce(marketContract, address);
+      const request = createRequest(address, marketContractAddress, callFunction, nonce);
+
+      const result = await requestMetaTx(signer, request);
+
+      console.log(result);
       alert("Success");
       window.location.reload();
     }
@@ -285,14 +313,16 @@ function Collection() {
     try {
       const ethersProvider = new BrowserProvider(walletProvider);
       const signer = await ethersProvider.getSigner();
-      const dragonContract = new Contract(
-        dragonContractAddress,
-        dragonAbi,
-        signer
-      );
 
-      const tx = await dragonContract[action](selectedNft);
-      await tx.wait();
+      const contractInterface = getInterface(dragonAbi);
+      const callFunction = contractInterface.encodeFunctionData(action, [selectedNft]);
+      const forwarderContract = new Contract(forwarderAddress, forwarderAbi, signer);
+      const nonce = await getNonce(forwarderContract, address);
+      const request = createRequest(address, dragonContractAddress, callFunction, nonce);
+
+      const result = await requestMetaTx(signer, request);
+      console.log(result);
+    
       alert("Success");
       window.location.reload();
     } catch (error) {
@@ -304,14 +334,17 @@ function Collection() {
     try {
       const ethersProvider = new BrowserProvider(walletProvider);
       const signer = await ethersProvider.getSigner();
-      const marketContract = new Contract(
-        marketContractAddress,
-        marketAbi,
-        signer
-      );
 
-      const tx = await marketContract.resolveAuction(auctionId);
-      await tx.wait();
+      const contractInterface = getInterface(marketAbi);
+      const callFunction = contractInterface.encodeFunctionData('resolveAuction', [auctionId]);
+
+      const forwarderContract = new Contract(forwarderAddress, forwarderAbi, signer);
+      const nonce = await getNonce(forwarderContract, address);
+      const request = createRequest(address, dragonContractAddress, callFunction, nonce);
+
+      const result = await requestMetaTx(signer, request);
+      console.log(result);
+    
       window.location.reload();
     } catch (error) {
       console.error(`Failed to resolve: ${error}`);

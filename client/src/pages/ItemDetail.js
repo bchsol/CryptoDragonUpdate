@@ -5,7 +5,7 @@ import {
   fetchAuctionItems,
   fetchMarketItems,
 } from "../blockchain/fetchMarketData";
-import { useWeb3ModalProvider } from "@web3modal/ethers/react";
+import { useAppKitProvider } from "@reown/appkit/react";
 import { BrowserProvider, Contract, formatUnits, parseUnits } from "ethers";
 import marketContractData from "../contracts/marketContract";
 import drinkContractData from "../contracts/drinkContract";
@@ -41,6 +41,10 @@ import {
   GrowthList,
   GrowthItem,
 } from "../Style/ItemDetailStyles";
+import { createRequest, getInterface, getNonce, requestMetaTx } from "../utils/relay";
+import forwarder from "../contracts/forwarder";
+const forwarderAddress = forwarder.AddressSepolia;
+const forwarderAbi = forwarder.Abi;
 
 const handleTransaction = async (
   contractAddress,
@@ -52,7 +56,6 @@ const handleTransaction = async (
   try {
     const ethersProvider = new BrowserProvider(walletProvider);
     const signer = await ethersProvider.getSigner();
-    const contract = new Contract(contractAddress, abi, signer);
 
     if (action === "buyItem" || action === "bid") {
       const drinkContract = new Contract(
@@ -68,23 +71,33 @@ const handleTransaction = async (
       );
 
       if (allowance < priceInDrink) {
-        const approveTx = await drinkContract.approve(
-          contractAddress,
-          priceInDrink
-        );
-        await approveTx.wait();
+        const contractInterface = getInterface(drinkContractData.Abi);
+        const callFunction = contractInterface.encodeFunctionData('approve', [contractAddress,priceInDrink]);
+
+        const forwarderContract = new Contract(forwarderAddress, forwarderAbi, signer);
+        const nonce = await getNonce(forwarderContract, walletProvider.address);
+        const request = createRequest(walletProvider.address, drinkContractData.AddressSepolia, callFunction, nonce);
+
+        const result = await requestMetaTx(signer, request);
+        console.log(result);
       }
     }
 
+    const contractInterface = getInterface(abi);
+    let callFunction;
+    const forwarderContract = new Contract(forwarderAddress, forwarderAbi, signer);
+    const nonce = await getNonce(forwarderContract, walletProvider.address);
+
     if (action === "buyItem") {
-      const tx = await contract[action](args[0], 1);
-      const receipt = await tx.wait();
-      console.log(receipt);
+      callFunction = contractInterface.encodeFunctionData('buyItem', [args[0],1]);
     } else if (action === "bid") {
-      const tx = await contract[action](...args);
-      const receipt = await tx.wait();
-      console.log(receipt);
+      callFunction = contractInterface.encodeFunctionData('bid', [...args]);
     }
+
+    const request = createRequest(walletProvider.address, contractAddress, callFunction, nonce);
+    const result = await requestMetaTx(signer, request);
+    console.log(result);
+
     window.location.reload();
   } catch (error) {
     console.error(`Failed to ${action}:`, error);
@@ -92,7 +105,7 @@ const handleTransaction = async (
 };
 
 function ItemDetail() {
-  const { walletProvider } = useWeb3ModalProvider();
+  const { walletProvider } = useAppKitProvider();
   const { id } = useParams();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);

@@ -17,10 +17,12 @@ import {
   useWeb3ModalProvider,
   useWeb3ModalAccount,
 } from "@web3modal/ethers/react";
-import { Contract, BrowserProvider } from "ethers";
+import { ethers } from "ethers";
 import questContractData from "../contracts/questContract";
 import { getQuestData } from "../blockchain/fetchQuestData";
 import dailyContractData from "../contracts/dailyCheck";
+import forwarder from "../contracts/forwarder";
+import { createRequest, getInterface, getNonce, requestMetaTx } from "../utils/relay";
 
 const questContract = questContractData.AddressSepolia;
 const questAbi = questContractData.Abi;
@@ -28,8 +30,11 @@ const questAbi = questContractData.Abi;
 const dailyContract = dailyContractData.AddressSepolia;
 const dailyAbi = dailyContractData.Abi;
 
+const forwarderAddress = forwarder.AddressSepolia;
+const forwarderAbi = forwarder.Abi;
+
 const Quest = () => {
-  const { address, isConnected } = useWeb3ModalAccount();
+  const { address } = useWeb3ModalAccount();
   const { walletProvider } = useWeb3ModalProvider();
   const [checkInTrigger, setCheckInTrigger] = useState(false);
 
@@ -43,7 +48,7 @@ const Quest = () => {
   useEffect(() => {
     const fetchQuestData = async () => {
       if (address) {
-        const ethersProvider = new BrowserProvider(walletProvider);
+        const ethersProvider = new ethers.BrowserProvider(walletProvider);
         const data = await getQuestData(ethersProvider, address);
         setQuestData({
           battle: data.battleCompleted,
@@ -57,21 +62,22 @@ const Quest = () => {
 
   useEffect(() => {
     const getDailyCheck = async () => {
-      const ethersProvider = new BrowserProvider(walletProvider);
+      const ethersProvider = new ethers.BrowserProvider(walletProvider);
+
       const signer = await ethersProvider.getSigner();
-      const providerContract = new Contract(dailyContract, dailyAbi, signer);
+      const providerContract = new ethers.Contract(dailyContract, dailyAbi, signer);
 
       const data = await providerContract.getConsecutiveDailyChecks(address);
-      setConsecutive(data);
+      setConsecutive(Number(data));
     };
     getDailyCheck();
   }, [questData, address, checkInTrigger]);
 
   const claimBattle = async () => {
     try {
-      const ethersProvider = new BrowserProvider(walletProvider);
+      const ethersProvider = new ethers.BrowserProvider(walletProvider);
       const signer = await ethersProvider.getSigner();
-      const providerContract = new Contract(questContract, questAbi, signer);
+      const providerContract = new ethers.Contract(questContract, questAbi, signer);
 
       let tx = await providerContract.requestBattleReward();
       const receipt = await tx.wait();
@@ -83,9 +89,9 @@ const Quest = () => {
 
   const claimExplore = async () => {
     try {
-      const ethersProvider = new BrowserProvider(walletProvider);
+      const ethersProvider = new ethers.BrowserProvider(walletProvider);
       const signer = await ethersProvider.getSigner();
-      const providerContract = new Contract(questContract, questAbi, signer);
+      const providerContract = new ethers.Contract(questContract, questAbi, signer);
 
       let tx = await providerContract.requestExploreReward();
       const receipt = await tx.wait();
@@ -97,9 +103,9 @@ const Quest = () => {
 
   const calimAll = async () => {
     try {
-      const ethersProvider = new BrowserProvider(walletProvider);
+      const ethersProvider = new ethers.BrowserProvider(walletProvider);
       const signer = await ethersProvider.getSigner();
-      const providerContract = new Contract(questContract, questAbi, signer);
+      const providerContract = new ethers.Contract(questContract, questAbi, signer);
 
       let tx = await providerContract.requestAllReward();
       const receipt = await tx.wait();
@@ -111,13 +117,18 @@ const Quest = () => {
 
   const handleCheckIn = async () => {
     try {
-      const ethersProvider = new BrowserProvider(walletProvider);
+      const ethersProvider = new ethers.BrowserProvider(walletProvider);
       const signer = await ethersProvider.getSigner();
-      const providerContract = new Contract(dailyContract, dailyAbi, signer);
 
-      let tx = await providerContract.dailyCheck();
-      const receipt = await tx.wait();
-      console.log(receipt);
+      const contractInterface = getInterface(dailyAbi);
+      const callFunction = contractInterface.encodeFunctionData('dailyCheck');
+      
+      const forwarderContract = new ethers.Contract(forwarderAddress, forwarderAbi, signer);
+      const nonce = await getNonce(forwarderContract, address);
+      const request = createRequest(address, dailyContract, callFunction, nonce);
+      const result = await requestMetaTx(signer, request);
+
+      console.log(result);
       setCheckInTrigger(!checkInTrigger);
     } catch (error) {
       console.error("Transaction Failed: ", error);

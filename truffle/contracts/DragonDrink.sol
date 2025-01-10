@@ -48,13 +48,13 @@ contract DragonDrink is ERC20, Ownable {
 
     /// @notice 토큰 전송
     function transfer(address recipient, uint256 amount) public override returns (bool) {
-        require(isAllowedAddress(recipient), "Recipient not authorized");
+        require(isAllowedAddress(msg.sender), "Recipient not authorized");
         return super.transfer(recipient, amount);
     }
 
     /// @notice 승인된 토큰 전송
     function transferFrom(address sender, address recipient, uint256 amount) public override returns (bool) {
-        require(isAllowedAddress(recipient), "Recipient not authorized");
+        require(isAllowedAddress(msg.sender), "Recipient not authorized");
         return super.transferFrom(sender, recipient, amount);
     }
 }

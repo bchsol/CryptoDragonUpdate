@@ -3,10 +3,11 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./PersonalityCalculator.sol";
 
-contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator {
+contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator, ERC2771Context {
     enum GrowthStage{Egg, Hatch, Hatchling, Adult}
     
     struct Token {
@@ -17,7 +18,6 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator {
         uint256 generation;
         bool isPremium;
         uint256 birth;
-
         string element;
         string personality;
     }
@@ -41,11 +41,14 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator {
     string public metaDescription;
     string private imageExtension;
 
+    // Items 컨트랙트 주소 저장을 위한 변수
+    address public itemContract;
+
     event TokenMinted(address indexed owner, uint256 indexed tokenId);
     event TokenEvolved(uint256 indexed tokenId, string newStage);
     event TokenFeed(uint256 indexed tokenId, uint256 indexed newTime);
 
-    constructor(address initialOwner, string memory name, string memory symbol) ERC721(name,symbol) Ownable(initialOwner) {
+    constructor(address initialOwner, address trustedForwarder, string memory name, string memory symbol) ERC721(name,symbol) Ownable(initialOwner) ERC2771Context(trustedForwarder){
         randNonce = 0;
         newTokenId = 0;
         
@@ -61,7 +64,7 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator {
     /// Egg -> Hatch -> Hatchling -> Adult 순서로 진화
     /// 각 단계별로 필요한 시간이 지나야 진화 가능
     function evolve(uint256 tokenId) external {
-        require(ownerOf(tokenId) == msg.sender, "Not owner");
+        require(ownerOf(tokenId) == _msgSender(), "Not owner");
         GrowthStage currentStage = growthStages[tokenId];
         uint256 currentTime = block.timestamp;
 
@@ -80,7 +83,7 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator {
      /// @notice 먹이를 주어 성장 시간을 단축시키는 함수
      /// 하루에 최대 3시간까지 단축 가능
     function feeding(uint256 tokenId) external {
-        require(ownerOf(tokenId) == msg.sender, "Not owner");
+        require(ownerOf(tokenId) == _msgSender(), "Not owner");
         GrowthStage currentStage = growthStages[tokenId];
         GrowthTime storage time = growthTime[tokenId];
         uint256 currentTime = block.timestamp;
@@ -204,27 +207,24 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator {
         }
     }
 
+    function trainAttribute(uint256 tokenId, PersonalityCalculator.Attribute attribute) external {
+        require(ownerOf(tokenId) == _msgSender(), "Not token owner");
+        _trainAttribute(tokenId, attribute);
+    }
+
 
     /// @notice 성격 타입을 문자열로 변환하는 내부 함수
     /// @return 성격을 나타내는 문자열
     function _getPersonalityString(Personality personality) internal pure returns (string memory) {
-        if (personality == Personality.Naive) return "Naive";
-        if (personality == Personality.Rash) return "Rash";
-        if (personality == Personality.Hasty) return "Hasty";
-        if (personality == Personality.QuickWitted) return "QuickWitted";
-        if (personality == Personality.Brave) return "Brave";
-        if (personality == Personality.Quirky) return "Quirky";
-        if (personality == Personality.Adamant) return "Adamant";
-        if (personality == Personality.Bold) return "Bold";
-        if (personality == Personality.Quiet) return "Quiet";
-        if (personality == Personality.Calm) return "Calm";
-        if (personality == Personality.Careful) return "Careful";
-        if (personality == Personality.Hardy) return "Hardy";
-        if (personality == Personality.Docile) return "Docile";
-        if (personality == Personality.Bashful) return "Bashful";
-        if (personality == Personality.Lax) return "Lax";
-        if (personality == Personality.Smart) return "Smart";
-        revert("Invalid personality");
+        string[16] memory personalities = [
+            "Naive", "Rash", "Hasty", "QuickWitted", 
+            "Brave", "Quirky", "Adamant", "Bold", 
+            "Quiet", "Calm", "Careful", "Hardy", 
+            "Docile", "Bashful", "Lax", "Smart"
+            ];
+        uint8 index = uint8(personality);
+        require(index < 16, "Invalid personality");
+        return personalities[index];
     }
 
 
@@ -232,7 +232,7 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator {
     /// @return 1(수컷) 또는 2(암컷)의 값
     function getRandomGender() internal returns(uint) {
         randNonce++;
-        return uint(keccak256(abi.encodePacked(block.timestamp,msg.sender,randNonce))) % 2 + 1;
+        return uint(keccak256(abi.encodePacked(block.timestamp,_msgSender(),randNonce))) % 2 + 1;
     }
 
     
@@ -261,7 +261,6 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator {
         imageExtension = _imgEx;
     }
 
-
     /// @notice 토큰의 메타데이터 URI를 조회하는 함수
     /// @return 토큰의 메타데이터 URI 문자열
     function tokenURI(uint256 tokenId)
@@ -272,50 +271,76 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator {
     {
         if(bytes(baseTokenURI).length > 0) {
             return string(abi.encodePacked(baseTokenURI, Strings.toString(tokenId)));
-        } else {
-            string memory image;
+        } 
+        string memory image = _generateImageString(tokenId);
 
-            if(growthStages[tokenId] == GrowthStage.Egg) {
-                image = string(abi.encodePacked(tokens[tokenId].tokenType,"_egg"));  
-            } else {
-                string memory gen;
-                if(tokens[tokenId].isPremium) {
-                    gen = tokens[tokenId].generation == 1 ? "g" : "b";
-                } else {
-                    gen = "n";
-                }
-                string memory gender = tokens[tokenId].gender == 1 ? "m" : "f";
-                string memory stage;
+        return string(abi.encodePacked(
+        "data:application/json;utf8,{\"name\":\"Dragon #",
+        Strings.toString(tokenId),
+        "\",\"image\":\"",
+        dataURI,
+        image,
+        imageExtension,
+        "\",\"attributes\":[",
+        _generateAttributes(tokenId),
+        "]}"
+    ));
+    }
 
-                if(growthStages[tokenId] == GrowthStage.Hatch) {
-                    stage = "hatch";
-                } else if(growthStages[tokenId] == GrowthStage.Hatchling) {
-                    stage = "hatchling";
-                } else if(growthStages[tokenId] == GrowthStage.Adult){
-                    stage = "adult";
-                }
-
-                image = string(abi.encodePacked(tokens[tokenId].tokenType,"_",gen, "_", gender, "_", stage));
-            }
-
-            return string(abi.encodePacked(
-                "data:application/json;utf8,{\"name\": \"Dragon #",
-                Strings.toString(tokenId),
-                "\",\"external_url\":\"https://github.com/bchsol/CryptoDragon\",\"image\":\"",
-                dataURI,
-                image,
-                imageExtension,
-                "\",\"attributes\":[{\"trait_type\":\"Dragon\",\"value\":\"",
-                tokens[tokenId].tokenType,
-                "\"}, {\"trait_type\":\"Element\",\"value\":\"",
-                tokens[tokenId].element,
-                "\"}, {\"trait_type\":\"Personality\",\"value\":\"",
-                tokens[tokenId].personality,
-                "\"}]}"
-            ));
-        }
+    /// @notice 성장 단계를 문자열로 변환하는 내부 함수
+    function _getStageString(GrowthStage stage) internal pure returns (string memory) {
+        if(stage == GrowthStage.Hatch) return "hatch";  
+        if(stage == GrowthStage.Hatchling) return "hatchling";  
+        if(stage == GrowthStage.Adult) return "adult";
+        return "egg";
     }
     
+    /// @notice 토큰의 속성을 JSON 형식으로 생성하는 내부 함수
+    function _generateAttributes(uint256 tokenId) internal view returns (string memory) {
+        Token storage token = tokens[tokenId];
+        GrowthStage stage = growthStages[tokenId];
+        
+        string memory attributes = string(abi.encodePacked(
+        "{\"trait_type\":\"Type\",\"value\":\"", token.tokenType, "\"},",
+        "{\"trait_type\":\"Stage\",\"value\":\"", _getStageString(stage), "\"},",
+        "{\"trait_type\":\"Generation\",\"value\":", Strings.toString(token.generation), "},",
+            "{\"trait_type\":\"Element\",\"value\":\"", token.element, "\"}"
+        ));
+
+        if (stage != GrowthStage.Egg) {
+            attributes = string(abi.encodePacked(
+                attributes,
+                ",{\"trait_type\":\"Gender\",\"value\":", 
+                token.gender == 1 ? "\"Male\"" : "\"Female\"", "}"
+        ));
+
+        if (stage == GrowthStage.Hatchling || stage == GrowthStage.Adult) {
+            attributes = string(abi.encodePacked(
+                attributes,
+                ",{\"trait_type\":\"Personality\",\"value\":\"",
+                token.personality,
+                    "\"}"
+                ));
+            }
+        }
+
+        return attributes;
+    }
+
+
+    /// @notice 이미지 문자열 생성을 위한 새로운 헬퍼 함수
+    function _generateImageString(uint256 tokenId) internal view returns (string memory) {
+        Token storage token = tokens[tokenId];
+        if(growthStages[tokenId] == GrowthStage.Egg) {
+            return string(abi.encodePacked(token.tokenType,"_egg"));
+        }
+        
+        string memory gen = token.isPremium ? (token.generation == 1 ? "g" : "b") : "n";
+        string memory gender = token.gender == 1 ? "m" : "f";
+        string memory stage = _getStageString(growthStages[tokenId]);
+        
+        return string(abi.encodePacked(token.tokenType,"_",gen,"_",gender,"_",stage));
+    }
 
     /// @notice 인터페이스 지원 여부를 확인하는 함수
     /// @return 지원 여부 (bool)
@@ -326,5 +351,53 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator {
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
+    }
+
+    /// @notice 성격을 변경하는 함수
+    /// @param tokenId 대상 토큰 ID
+    /// @param newPersonality 새로운 성격 값
+    function changePersonality(uint256 tokenId, Personality newPersonality) external {
+        require(_msgSender() == address(itemContract), "Only item contract can change personality");
+        
+        // confirmedPersonalities에서 허용된 성격인지 확인
+        Personality[] memory allowedPersonalities = confirmedPersonalities[tokenId];
+        require(allowedPersonalities.length > 0, "No confirmed personalities");
+        
+        bool isAllowed = false;
+        for(uint i = 0; i < allowedPersonalities.length; i++) {
+            if(allowedPersonalities[i] == newPersonality) {
+                isAllowed = true;
+                break;
+            }
+        }
+        require(isAllowed, "Personality not in confirmed list");
+        
+        tokens[tokenId].personality = _getPersonalityString(newPersonality);
+    }
+
+    /// @notice 성별을 변경하는 함수
+    /// @param tokenId 대상 토큰 ID
+    function changeGender(uint256 tokenId) external {
+        require(_msgSender() == address(itemContract), "Only item contract can change gender");
+        require(growthStages[tokenId] != GrowthStage.Egg, "Cannot change gender of egg");
+        // 1 -> 2 또는 2 -> 1로 변경
+        tokens[tokenId].gender = tokens[tokenId].gender == 1 ? 2 : 1;
+    }
+
+    /// @notice Items 컨트랙트 주소를 설정하는 함수
+    function setItemContract(address _itemContract) external onlyOwner {
+        itemContract = _itemContract;
+    }
+
+    function _msgSender() internal view virtual override(Context, ERC2771Context) returns(address sender) {
+        return ERC2771Context._msgSender();
+    }
+
+    function _msgData() internal view virtual override(Context, ERC2771Context) returns(bytes calldata) {
+        return ERC2771Context._msgData();
+    }
+
+    function _contextSuffixLength() internal view virtual override(Context,ERC2771Context) returns (uint256) {
+        return 20;
     }
 }

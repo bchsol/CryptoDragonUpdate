@@ -6,9 +6,11 @@ import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "../Interfaces/IToken.sol";
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
-contract Marketplace is Ownable, ERC721Holder, ERC1155Holder {
+import "../interfaces/IToken.sol";
+
+contract Marketplace is Ownable, ERC721Holder, ERC1155Holder, ERC2771Context {
     uint128 public _saleIds;
     uint128 public _saleSold; 
     uint128 public _auctionIds;
@@ -81,7 +83,7 @@ contract Marketplace is Ownable, ERC721Holder, ERC1155Holder {
 
     /// @notice 마켓플레이스 컨트랙트 생성자
     /// @param _paymentToken 결제에 사용될 토큰 주소
-    constructor(address _paymentToken) Ownable(msg.sender) {
+    constructor(address _paymentToken, address trustedForwarder) Ownable(_msgSender()) ERC2771Context(trustedForwarder){
         paymentToken = IERC20(_paymentToken);
         marketFeePer = 25;
     }
@@ -94,7 +96,7 @@ contract Marketplace is Ownable, ERC721Holder, ERC1155Holder {
 
     /// @notice 아이템 소유자만 접근 가능하도록 하는 modifier
     modifier onlyItemOwner(uint128 itemId) {
-        require(items[itemId].owner == msg.sender, "Not owner");
+        require(items[itemId].owner == _msgSender(), "Not owner");
         _;
     }
 
@@ -112,11 +114,11 @@ contract Marketplace is Ownable, ERC721Holder, ERC1155Holder {
 
         IToken tokenContract = IToken(tokenAddress);
         if(isERC721) {
-            require(tokenContract.ownerOf(tokenId) == msg.sender, "Not owner");
+            require(tokenContract.ownerOf(tokenId) == _msgSender(), "Not owner");
         } else {
-            require(tokenContract.balanceOf(msg.sender, tokenId) >= quantity, "Insufficient balance");
+            require(tokenContract.balanceOf(_msgSender(), tokenId) >= quantity, "Insufficient balance");
         }
-        require(tokenContract.isApprovedForAll(msg.sender, address(this)), "Not approved");
+        require(tokenContract.isApprovedForAll(_msgSender(), address(this)), "Not approved");
 
         unchecked {
             _saleIds++;
@@ -124,7 +126,7 @@ contract Marketplace is Ownable, ERC721Holder, ERC1155Holder {
 
         items[_saleIds] = MarketItem({
             itemId: _saleIds,
-            owner: msg.sender,
+            owner: _msgSender(),
             tokenAddress: tokenAddress,
             tokenId: tokenId,
             price: price,
@@ -139,7 +141,7 @@ contract Marketplace is Ownable, ERC721Holder, ERC1155Holder {
         listedInMarket[tokenAddress][tokenId] = true;
         tokenToItemId[tokenAddress][tokenId] = _saleIds;
 
-        emit MarketItemListed(_saleIds, tokenAddress, tokenId, msg.sender, price, quantity, isERC721);
+        emit MarketItemListed(_saleIds, tokenAddress, tokenId, _msgSender(), price, quantity, isERC721);
     }
 
     /// @notice 등록된 아이템을 취소하는 함수
@@ -151,7 +153,7 @@ contract Marketplace is Ownable, ERC721Holder, ERC1155Holder {
         listedInMarket[item.tokenAddress][item.tokenId] = false;
         tokenToItemId[item.tokenAddress][item.tokenId] = 0;
 
-        emit MarketItemDelisted(itemId, item.tokenId, msg.sender, item.price);
+        emit MarketItemDelisted(itemId, item.tokenId, _msgSender(), item.price);
     }
 
     /// @notice 등록된 아이템을 구매하는 함수
@@ -162,8 +164,8 @@ contract Marketplace is Ownable, ERC721Holder, ERC1155Holder {
         require(!item.sold && !item.cancel && item.quantity >= quantity, "Invalid purchase");
 
         uint256 totalPrice = item.price * quantity;
-        require(paymentToken.balanceOf(msg.sender) >= totalPrice, "Insufficient funds");
-        require(paymentToken.allowance(msg.sender, address(this)) >= totalPrice, "Insufficient allowance");
+        require(paymentToken.balanceOf(_msgSender()) >= totalPrice, "Insufficient funds");
+        require(paymentToken.allowance(_msgSender(), address(this)) >= totalPrice, "Insufficient allowance");
 
         (uint256 fee, uint256 sellerProceeds) = _calculateFee(totalPrice);
 
@@ -178,22 +180,17 @@ contract Marketplace is Ownable, ERC721Holder, ERC1155Holder {
         listedInMarket[item.tokenAddress][item.tokenId] = false;
         tokenToItemId[item.tokenAddress][item.tokenId] = 0;
 
-        IToken(item.tokenAddress).safeTransferFrom(
-            item.owner, 
-            msg.sender, 
-            item.tokenId, 
-            item.isERC721 ? 1 : quantity,
-            ""
-        );
+        if(item.isERC721) IToken(item.tokenAddress).safeTransferFrom(item.owner, _msgSender(), item.tokenId, "");
+        else IToken(item.tokenAddress).safeTransferFrom(item.owner, _msgSender(), item.tokenId, quantity, "");
 
-        require(paymentToken.transferFrom(msg.sender, address(this), totalPrice), "Transfer failed");
+        require(paymentToken.transferFrom(_msgSender(), address(this), totalPrice), "Transfer failed");
         
         unchecked {
             claimableFunds[owner()] += fee;
             claimableFunds[item.owner] += sellerProceeds;
         }
 
-        emit MarketItemBought(itemId, item.tokenAddress, item.tokenId, item.owner, msg.sender, item.price, quantity);
+        emit MarketItemBought(itemId, item.tokenAddress, item.tokenId, item.owner, _msgSender(), item.price, quantity);
     }
 
     /// @notice ERC721 토큰을 경매에 등록하는 함수
@@ -207,8 +204,8 @@ contract Marketplace is Ownable, ERC721Holder, ERC1155Holder {
         require(!listedInAuction[tokenAddress][tokenId], "Already listed");
 
         IToken tokenContract = IToken(tokenAddress);
-        require(tokenContract.ownerOf(tokenId) == msg.sender, "Not owner");
-        require(tokenContract.isApprovedForAll(msg.sender, address(this)), "Not approved");
+        require(tokenContract.ownerOf(tokenId) == _msgSender(), "Not owner");
+        require(tokenContract.isApprovedForAll(_msgSender(), address(this)), "Not approved");
 
         unchecked {
             _auctionIds++;
@@ -216,7 +213,7 @@ contract Marketplace is Ownable, ERC721Holder, ERC1155Holder {
 
         auctionItems[_auctionIds] = AuctionItem({
             itemId: _auctionIds,
-            owner: msg.sender,
+            owner: _msgSender(),
             tokenAddress: tokenAddress,
             tokenId: tokenId,
             reservePrice: reservePrice,
@@ -229,7 +226,7 @@ contract Marketplace is Ownable, ERC721Holder, ERC1155Holder {
         listedInAuction[tokenAddress][tokenId] = true;
         tokenToAuctionId[tokenAddress][tokenId] = _auctionIds;
 
-        emit AuctionListed(_auctionIds, tokenAddress, tokenId, msg.sender, reservePrice, uint96(block.timestamp), uint96(block.timestamp + endTime));
+        emit AuctionListed(_auctionIds, tokenAddress, tokenId, _msgSender(), reservePrice, uint96(block.timestamp), uint96(block.timestamp + endTime));
     }
 
     /// @notice 경매에 입찰하는 함수
@@ -240,10 +237,10 @@ contract Marketplace is Ownable, ERC721Holder, ERC1155Holder {
         address lastHighestBidder = highestBidder[auctionId];
         uint256 lastHighestPrice = bids[auctionId][lastHighestBidder].price;
 
-        require(msg.sender != lastHighestBidder && msg.sender != auction.owner, "Invalid bidder");
+        require(_msgSender() != lastHighestBidder && _msgSender() != auction.owner, "Invalid bidder");
         require(price > lastHighestPrice && price >= auction.reservePrice, "Invalid price");
 
-        require(paymentToken.transferFrom(msg.sender, address(this), price), "Transfer failed");
+        require(paymentToken.transferFrom(_msgSender(), address(this), price), "Transfer failed");
 
         if(lastHighestBidder != address(0)) {
             unchecked {
@@ -252,11 +249,11 @@ contract Marketplace is Ownable, ERC721Holder, ERC1155Holder {
             delete bids[auctionId][lastHighestBidder];
         }
 
-        bids[auctionId][msg.sender] = Bid({
+        bids[auctionId][_msgSender()] = Bid({
             price: price,
             timestamp: uint96(block.timestamp)
         });
-        highestBidder[auctionId] = msg.sender;
+        highestBidder[auctionId] = _msgSender();
 
         emit AuctionBid(auctionId, price, uint96(block.timestamp));
     }
@@ -294,17 +291,17 @@ contract Marketplace is Ownable, ERC721Holder, ERC1155Holder {
 
     /// @notice 사용자가 받을 수 있는 자금을 인출하는 함수
     function withdrawFunds() external {
-        uint256 funds = claimableFunds[msg.sender];
+        uint256 funds = claimableFunds[_msgSender()];
         require(funds > 0, "No funds");
 
-        claimableFunds[msg.sender] = 0;
-        require(paymentToken.transfer(msg.sender, funds), "Transfer failed");
+        claimableFunds[_msgSender()] = 0;
+        require(paymentToken.transfer(_msgSender(), funds), "Transfer failed");
     }
 
     /// @notice 경매를 취소하는 함수
     function cancelAuction(uint128 auctionId) external {
         AuctionItem storage auction = auctionItems[auctionId];
-        require(msg.sender == auction.owner || msg.sender == owner(), "Not authorized");
+        require(_msgSender() == auction.owner || _msgSender() == owner(), "Not authorized");
         require(getAuctionStatus(auctionId) == "ACTIVE", "Not active");
 
         address currentHighestBidder = highestBidder[auctionId];
@@ -361,7 +358,7 @@ contract Marketplace is Ownable, ERC721Holder, ERC1155Holder {
 
     /// @notice 사용자가 받을 수 있는 자금을 확인하는 함수
     function checkClaimableFunds() external view returns(uint256) {
-        return claimableFunds[msg.sender];
+        return claimableFunds[_msgSender()];
     }
 
     /// @notice 마켓플레이스 수수료율을 설정하는 함수
@@ -369,13 +366,25 @@ contract Marketplace is Ownable, ERC721Holder, ERC1155Holder {
         marketFeePer = newFee;
     }
 
-    /// @notice 토큰 컨트랙트를 승인하는 함수
+    /// @notice 토큰 컨트랙트를 판매 허용하는 함수
     function setApprovalAddress(address tokenAddress) external onlyOwner {
         approvalContract[tokenAddress] = true;
     }
 
-    /// @notice 토큰 컨트랙트 승인을 취소하는 함수
+    /// @notice 토큰 컨트랙트 판매 취소하는 함수
     function removeAddress(address tokenAddress) external onlyOwner {
         delete approvalContract[tokenAddress];
+    }
+
+    function _msgSender() internal view virtual override(Context, ERC2771Context) returns(address sender) {
+        return ERC2771Context._msgSender();
+    }
+
+    function _msgData() internal view virtual override(Context, ERC2771Context) returns(bytes calldata) {
+        return ERC2771Context._msgData();
+    }
+
+    function _contextSuffixLength() internal view virtual override(Context,ERC2771Context) returns (uint256) {
+        return 20;
     }
 }

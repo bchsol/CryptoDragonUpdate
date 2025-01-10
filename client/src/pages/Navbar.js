@@ -1,6 +1,7 @@
 import React from "react";
 import { useState } from "react";
-import { useWeb3Modal, useWeb3ModalAccount } from "@web3modal/ethers/react";
+//import { useAppKit, useAppKitAccount } from "@reown/appkit/react";
+import { useWeb3ModalAccount,useWeb3Modal } from "@web3modal/ethers/react";
 import {
   CollapsedMenu,
   NavLink,
@@ -24,7 +25,7 @@ function Navbar() {
     <NavbarContainer>
       <NavbarToggle onClick={() => setIsOpen(!isOpen)}>☰</NavbarToggle>
 
-      <NavLinks isOpen={isOpen}>
+      <NavLinks >
         <CollapsedMenu>
           <NavLink to="/">Mint</NavLink>
           <NavLink to="/breed">Breed</NavLink>

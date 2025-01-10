@@ -41,6 +41,9 @@
  * https://trufflesuite.com/docs/truffle/getting-started/using-the-truffle-dashboard/
  */
 
+const HDWalletProvider = require("@truffle/hdwallet-provider");
+const privateKey = 'c6471e976a106246f5ccc4cd4d602e4a84e026adaa170a9aba3dd7f47a4664c5';
+
 // require('dotenv').config();
 // const { MNEMONIC, PROJECT_ID } = process.env;
 
@@ -56,7 +59,6 @@ module.exports = {
    *
    * $ truffle test --network <network-name>
    */
-
   contracts_build_directory: "../client/src/contracts",
   networks: {
     // Useful for testing. The `development` name is special - truffle uses it by default
@@ -69,6 +71,20 @@ module.exports = {
       host: "127.0.0.1", // Localhost (default: none)
       port: 8545, // Standard Ethereum port (default: none)
       network_id: "*", // Any network (default: none)
+    },
+    ganache: {
+      host: "127.0.0.1", // Localhost (default: none)
+      port: 8545, // Standard Ethereum port (default: none)
+      network_id: "*", // Any network (default: none)
+    },
+    sepolia:{
+      provider: () => new HDWalletProvider(privateKey, 'https://sepolia.infura.io/v3/39eab2c2502243c0a53845bacb29a777'),
+      network_id: 11155111,
+      gas: 5000000,
+      gasPrice: 20000000000,
+      confirmations: 2,
+      timeoutBlocks: 2000,
+      skipDryRun: true,
     },
     //
     // An additional network, but with some advanced options…
@@ -109,13 +125,14 @@ module.exports = {
     solc: {
       version: "0.8.20", // Fetch exact version from solc-bin (default: truffle's version)
       // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
-      // settings: {          // See the solidity docs for advice about optimization and evmVersion
-      //  optimizer: {
-      //    enabled: false,
-      //    runs: 200
-      //  },
-      //  evmVersion: "byzantium"
-      // }
+      settings: {
+        // See the solidity docs for advice about optimization and evmVersion
+        optimizer: {
+          enabled: true,
+          runs: 20000,
+        },
+        //  evmVersion: "byzantium"
+      },
     },
   },
 

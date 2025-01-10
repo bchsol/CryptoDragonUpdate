@@ -124,7 +124,7 @@ contract TokenTypeManager is Ownable {
     /// @return 무작위로 선택된 토큰 타입
     function _getRandomTokenType(string[] storage tokenArray) internal view returns (string memory) {
         require(tokenArray.length > 0, "No token types available");
-        // keccak256을 사용한 더 안전한 난수 생성
+
         uint256 randomIndex = uint256(
             keccak256(
                 abi.encodePacked(
