@@ -12,15 +12,20 @@ import {
   DragonName,
 } from "../Style/BreedStyles";
 import { fetchNfts } from "../blockchain/fetchData";
-import { useAppKitProvider, useAppKitAccount } from "@reown/appkit/react";
+import { useWeb3ModalProvider,useWeb3ModalAccount } from "@web3modal/ethers/react";
 import { BrowserProvider, Contract } from "ethers";
 
 import heartImage from "../image/heart.png";
 import eggImage from "../image/secret_egg.png";
+import forwarder from "../contracts/forwarder";
+import { createRequest, getInterface, getNonce, requestMetaTx } from "../utils/relay";
 
 const contractAddress = dragonContractData.AddressSepolia;
 const abi = dragonContractData.Abi;
+const forwarderAddress = forwarder.AddressSepolia;
+const forwarderAbi = forwarder.Abi;
 
+const dataUrl = 'https://raw.githubusercontent.com/bchsol/CryptoDragon/refs/heads/main/client/Image/';
 function Breed() {
   const [isMaleModalOpen, setIsMaleModalOpen] = useState(false);
   const [isFemaleModalOpen, setIsFemaleModalOpen] = useState(false);
@@ -30,8 +35,8 @@ function Breed() {
   const [maleNftIds, setMaleNftIds] = useState([]);
   const [femaleNftIds, setFemaleNftIds] = useState([]);
 
-  const { address, chainId, isConnected } = useAppKitAccount();
-  const { walletProvider } = useAppKitProvider();
+  const { address, isConnected } = useWeb3ModalAccount();
+  const { walletProvider } = useWeb3ModalProvider();
 
   useEffect(() => {
     if (isMaleModalOpen) {
@@ -76,28 +81,26 @@ function Breed() {
   };
 
   const breed = async () => {
-    console.log("breed");
-    // try {
-    //   if (!isConnected) throw Error("User disconnected");
-    //   const ethersProvider = new BrowserProvider(walletProvider);
-    //   const signer = await ethersProvider.getSigner();
-    //   const signerContract = new Contract(contractAddress, abi, signer);
-    //   const tokenType =
-    //     Math.random() < 0.5
-    //       ? selectedHusband.tokenInfo.tokenType
-    //       : selectedWife.tokenInfo.tokenType;
-    //   let tx = await signerContract.breed(
-    //     tokenType,
-    //     Number(selectedHusband.id),
-    //     Number(selectedWife.id)
-    //   );
-    //   const receipt = await tx.wait();
-    //   alert("Breed Success");
-    //   window.location.reload();
-    // } catch (error) {
-    //   console.log(error);
-    //   alert("Failed");
-    // }
+    try {
+      if (!isConnected) throw Error("User disconnected");
+      const ethersProvider = new BrowserProvider(walletProvider);
+      const signer = await ethersProvider.getSigner();
+      
+      const contractInterface = getInterface(abi);
+      const callFunction = contractInterface.encodeFunctionData('breedTokens', [Number(selectedHusband.id), Number(selectedWife.id)]);
+
+      const forwarderContract = new Contract(forwarderAddress, forwarderAbi, signer);
+      const nonce = await getNonce(forwarderContract, address);
+
+      const request = createRequest(address, contractAddress, callFunction, nonce);
+
+      const result = await requestMetaTx(signer, request);
+      console.log(result);
+      //window.location.reload();
+    } catch (error) {
+      console.log(error);
+      alert("Failed");
+    }
   };
 
   const checkHandleMale = (nft) => {
@@ -178,7 +181,7 @@ function Breed() {
           selectedWife.tokenInfo.tokenType ? (
             <EggBox>
               <img
-                src={`https://raw.githubusercontent.com/bchsol/CryptoDragon/refs/heads/main/Image/${selectedHusband.tokenInfo.tokenType}_egg.webp
+                src={`${dataUrl}${selectedHusband.tokenInfo.tokenType}_egg.webp
                 `}
                 alt="Egg Type"
               />
@@ -188,7 +191,7 @@ function Breed() {
             <>
               <EggBox>
                 <img
-                  src={`https://raw.githubusercontent.com/bchsol/CryptoDragon/refs/heads/main/Image/${selectedHusband.tokenInfo.tokenType}_egg.webp
+                  src={`${dataUrl}${selectedHusband.tokenInfo.tokenType}_egg.webp
                   `}
                   alt="Egg Type 1"
                 />
@@ -197,7 +200,7 @@ function Breed() {
 
               <EggBox>
                 <img
-                  src={`https://raw.githubusercontent.com/bchsol/CryptoDragon/refs/heads/main/Image/${selectedWife.tokenInfo.tokenType}_egg.webp
+                  src={`${dataUrl}${selectedWife.tokenInfo.tokenType}_egg.webp
                   `}
                   alt="Egg Type 2"
                 />

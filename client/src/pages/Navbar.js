@@ -1,6 +1,5 @@
 import React from "react";
 import { useState } from "react";
-//import { useAppKit, useAppKitAccount } from "@reown/appkit/react";
 import { useWeb3ModalAccount,useWeb3Modal } from "@web3modal/ethers/react";
 import {
   CollapsedMenu,

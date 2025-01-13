@@ -340,7 +340,8 @@ function Collection() {
 
       const forwarderContract = new Contract(forwarderAddress, forwarderAbi, signer);
       const nonce = await getNonce(forwarderContract, address);
-      const request = createRequest(address, dragonContractAddress, callFunction, nonce);
+
+      const request = createRequest(address, marketContractAddress, callFunction, nonce);
 
       const result = await requestMetaTx(signer, request);
       console.log(result);
@@ -350,6 +351,28 @@ function Collection() {
       console.error(`Failed to resolve: ${error}`);
     }
   };
+
+  const unlistItem = async(marketId) => {
+    try {
+      const ethersProvider = new BrowserProvider(walletProvider);
+      const signer = await ethersProvider.getSigner();
+
+      const contractInterface = getInterface(marketAbi);
+      const callFunction = contractInterface.encodeFunctionData('unlistItem', [marketId]);
+
+      const forwarderContract = new Contract(forwarderAddress, forwarderAbi, signer);
+      const nonce = await getNonce(forwarderContract, address);
+
+      const request = createRequest(address, marketContractAddress, callFunction, nonce);
+
+      const result = await requestMetaTx(signer, request);
+      console.log(result);
+    
+      window.location.reload();
+    } catch (error) {
+      console.error(`Failed to resolve: ${error}`);
+    }
+  }
 
   const evolve = () => evolveOrFeed("evolve");
   const feeding = () => evolveOrFeed("feeding");
@@ -419,7 +442,9 @@ function Collection() {
                 <Button
                   className="resolve"
                   onClick={() =>
-                    resolveAuction(listedStatus[item.id].auctionId)
+                    {listedStatus[item.id].listed === "market" ? 
+                      unlistItem(listedStatus[item.id].marketId) : 
+                      resolveAuction(listedStatus[item.id].auctionId)}
                   }
                 >
                   Resolve

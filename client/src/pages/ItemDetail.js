@@ -5,7 +5,7 @@ import {
   fetchAuctionItems,
   fetchMarketItems,
 } from "../blockchain/fetchMarketData";
-import { useAppKitProvider } from "@reown/appkit/react";
+import { useWeb3ModalProvider } from "@web3modal/ethers/react"
 import { BrowserProvider, Contract, formatUnits, parseUnits } from "ethers";
 import marketContractData from "../contracts/marketContract";
 import drinkContractData from "../contracts/drinkContract";
@@ -105,7 +105,7 @@ const handleTransaction = async (
 };
 
 function ItemDetail() {
-  const { walletProvider } = useAppKitProvider();
+  const { walletProvider } = useWeb3ModalProvider();
   const { id } = useParams();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);

@@ -5,7 +5,6 @@ import "./Breeding.sol";
 import "./TokenTypeManager.sol";
 
 contract Token is Breeding {
-    uint256 public mintCount;
     bool public premiumMintEnabled;
     TokenTypeManager private tokenTypeManager;
 
@@ -35,8 +34,6 @@ contract Token is Breeding {
             "Invalid type"
         );
         
-        uint256 newTokenId = ++mintCount;
-
         mintToken(
             tokenType, 
             0, 
@@ -78,7 +75,7 @@ contract Token is Breeding {
         string memory element,
         string memory personality
     ){
-        require(id > 0 && id <= mintCount, "Invalid token ID");
+        require(id > 0 && id <= newTokenId, "Invalid token ID");
         Token storage token = tokens[id];
         return (
             token.gender,
@@ -102,7 +99,7 @@ contract Token is Breeding {
         uint256[] memory ids = new uint256[](balance);
         uint256 counter;
         
-        for (uint256 i = 1; i <= mintCount && counter < balance; i++) {
+        for (uint256 i = 1; i <= newTokenId && counter < balance; i++) {
             if (ownerOf(i) == user) {
                 ids[counter++] = i;
             }

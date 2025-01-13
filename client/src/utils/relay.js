@@ -2,8 +2,6 @@ import { ethers } from "ethers";
 import forwarder from "../contracts/forwarder";
 
 const forwarderAddress = forwarder.AddressSepolia;
-const forwarderAbi = forwarder.Abi;
-
 const domain = {
     name: 'ERC2771Forwarder',
     version: '1',
