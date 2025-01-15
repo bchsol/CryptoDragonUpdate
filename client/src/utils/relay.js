@@ -46,8 +46,8 @@ export const requestMetaTx = async (signer, request) => {
     try{
         const signature = await signer.signTypedData(domain, types, request);
     
-        const url = 'https://port-0-node-erc2771-relayer-m5evo294c2faab58.sel4.cloudtype.app/relay'
-        const response = await fetch('http://localhost:4000/relay', {
+        const url = 'https://wasteful-rafaela-choyu-69b7a901.koyeb.app/'
+        const response = await fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
