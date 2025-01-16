@@ -46,7 +46,7 @@ export const requestMetaTx = async (signer, request) => {
     try{
         const signature = await signer.signTypedData(domain, types, request);
     
-        const url = 'https://wasteful-rafaela-choyu-69b7a901.koyeb.app/'
+        const url = 'https://wasteful-rafaela-choyu-69b7a901.koyeb.app/relay'
         const response = await fetch(url, {
         method: 'POST',
         headers: {
