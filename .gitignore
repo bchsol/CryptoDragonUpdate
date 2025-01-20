@@ -1,14 +1,18 @@
 client/node_modules
 .deps
-
-/.vscode
-/build
-/db
+.vscode
+.vscode
+build
+db
+test
 
 client/pages/Test.js
 client/src/contracts
+client/build
+client/.firebase
+client/.firebaserc
+client/firebase.json
 
-/test
 
 truffle/contracts/.deploy
 truffle/contracts/.deps

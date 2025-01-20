@@ -12,10 +12,10 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator, 
     
     struct Token {
         string tokenType;
-        uint256 gender; // 1: male 2: female
+        uint8 gender; // 1: male 2: female
         uint256 husbandId;
         uint256 wifeId;
-        uint256 generation;
+        uint16 generation;
         bool isPremium;
         uint256 birth;
         string element;
@@ -157,7 +157,7 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator, 
         string memory _tokenType, 
         uint256 _husbandId, 
         uint256 _wifeId, 
-        uint256 _generation,
+        uint16 _generation,
         address _owner, 
         bool _isPremium, 
         string memory _element
@@ -230,9 +230,9 @@ contract TokenBase is ERC721, ERC721URIStorage, Ownable, PersonalityCalculator, 
 
     /// @notice 랜덤한 성별을 생성하는 내부 함수
     /// @return 1(수컷) 또는 2(암컷)의 값
-    function getRandomGender() internal returns(uint) {
+    function getRandomGender() internal returns(uint8) {
         randNonce++;
-        return uint(keccak256(abi.encodePacked(block.timestamp,_msgSender(),randNonce))) % 2 + 1;
+        return uint8(uint(keccak256(abi.encodePacked(block.timestamp,_msgSender(),randNonce))) % 2 + 1);
     }
 
     

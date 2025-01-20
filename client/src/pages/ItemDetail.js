@@ -236,7 +236,7 @@ const GrowthInfo = ({ tokenInfo, growthInfo }) => (
     <GrowthList>
       <GrowthItem>
         <strong>Gender: </strong>
-        {Number(tokenInfo.gender) % 2 === 0 ? "Female" : "Male"}
+        {tokenInfo.type === "egg" ? "secret" : Number(tokenInfo.gender) % 2 === 0 ? "Female" : "Male"}
       </GrowthItem>
       <GrowthItem>
         <strong>Husband Id: </strong>

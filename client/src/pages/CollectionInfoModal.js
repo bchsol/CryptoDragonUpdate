@@ -21,7 +21,7 @@ const CollectionInfoModal = ({
 }) => {
   const handleFeeding = () => feeding();
   const handleEvolve = () => evolve();
-
+ 
   return (
     <Modal show={show} onHide={onHide} size="lg" centered>
       <Modal.Header closeButton>
@@ -30,7 +30,7 @@ const CollectionInfoModal = ({
       <Modal.Body>
         <ul>
           <li>Type : {info.tokenType}</li>
-          <li>Gender : {Number(info.gender) % 2 == 0 ? "Female" : "Male"}</li>
+          <li>Gender : {stage === "egg" ? "secret" : Number(info.gender) % 2 == 0 ? "Female" : "Male"}</li>
           <li>Father TokenId : {Number(info.wifeId)}</li>
           <li>Mother TokenId : {Number(info.husbandId)}</li>
           <li>Generation : {Number(info.generation)} Gen</li>

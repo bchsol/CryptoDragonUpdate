@@ -27,7 +27,7 @@ contract Breeding is TokenBase {
         Token storage husband = tokens[husbandId];
         Token storage wife = tokens[wifeId];
         string memory tokenType = _determineChildTokenType(husband, wife);
-        uint256 tokenId = _createChildToken(tokenType, husband, wife);
+        uint256 tokenId = _createChildToken(tokenType, husbandId, wifeId,husband.generation, wife.generation);
 
         emit TokenBreed(husbandId, wifeId, tokenId);
         return tokenId;
@@ -89,16 +89,18 @@ contract Breeding is TokenBase {
     /// @notice 자식 토큰을 생성하는 내부 함수
     function _createChildToken(
         string memory tokenType, 
-        Token storage husband,
-        Token storage wife
+        uint256 husbandId,
+        uint256 wifeId,
+        uint16 husbandGen,
+        uint16 wifeGen
     ) private returns(uint256) {
-        uint256 parentGen = husband.generation > wife.generation ? 
-            husband.generation : wife.generation;
+        uint16 parentGen = husbandGen > wifeGen ? 
+            husbandGen : wifeGen;
             
         return mintToken(
             tokenType,
-            husband.husbandId,
-            wife.wifeId,
+            husbandId,
+            wifeId,
             parentGen + 1,
             _msgSender(),
             false,
